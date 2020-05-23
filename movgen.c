@@ -16,7 +16,7 @@ typedef struct magic {
 	uint64_t number;
 	int shift;
 } magic;
-
+//TEST
 magic bishopmagic[64] = { { 0x7552ab10290467ff, 59 },
 		{ 0x5839e626215bff46, 60 }, { 0x299c771164c7a488, 59 }, {
 				0x39e2aa096028b0cb, 59 }, { 0x3cc8f24761ab357f, 59 }, {
