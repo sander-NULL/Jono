@@ -307,7 +307,7 @@ int makemove(chessposition *position, char *move) { /* Makes a move given in lon
 	if (start == E8)
 		position->states.kingcastle[BLACK] = 0;
 	if (start == E8)
-		position->states.kingcastle[BLACK] = 0;
+		position->states.queencastle[BLACK] = 0;
 
 	/* If pawn jumped, en passant is possible */
 	if ((start & position->pawns[player]) != 0 && abs(endsqi - startsqi) == 16) /* Has a pawn moved AND did it jump? */
