@@ -1,5 +1,5 @@
 /*
- * timeman.c
+ * timemgmt.c
  *
  *  Created on: May 7, 2020
  *      Author: sander

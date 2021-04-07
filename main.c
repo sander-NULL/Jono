@@ -1,5 +1,5 @@
 /*
- * ucicomm.c
+ * main.c
  *
  *  Created on: Mar 30, 2020
  *      Author: sander
@@ -250,7 +250,7 @@ int makemove(chessposition *position, char *move) {
 int main(int argc, char *argv[]) {
 	int i;
 	char fen[100];				// Will contain FEN string
-	char rawCommand[5000];		// Will contain on-parsed raw command sent from the GUI
+	char rawCommand[5000];		// Will contain un-parsed raw command sent from the GUI
 	char *tmp;					// A temporary variable for parsing
 	char *command[5000]; 		// Pointers to parsed commands, possible are 5000 commands
 	FILE *log;					// For the log file

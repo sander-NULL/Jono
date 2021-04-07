@@ -484,7 +484,9 @@ void clearpos(chessposition *position) { /* Clear the board */
 
 int importpos(char *fen, chessposition *position) { /* Set up internal position from FEN string */
 
-	char *board, *tomove, *castling, *enpassant, *halfmoves, *moves;
+	char *board, *tomove, *castling, *enpassant, *halfmoves, *moves;	// gcc throws warning that *moves is set but not used
+																		// this is okay since there is a field for the move number
+																		// in FEN which might be used later
 	char *tmp, *ptr;
 	int i = 7, j = 0, n = 0;
 
