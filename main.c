@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
 			fflush(log);
 
 			tmp = rawCommand; /* For parsing */
-			for (i = 0; i <= 5000; i++) {
+			for (i = 0; i < 5000; i++) {
 				if (rawCommand[i] == '\n')
 					rawCommand[i] = '\0'; /* For parsing reasons */
 			}
