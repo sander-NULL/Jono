@@ -318,11 +318,12 @@ pv iterativeDeepening(chessposition *position, int maxDepth) {
 	return ret;
 }
 
-void search(chessposition *position) {
+void* search(void* _position) { // argument is actually a chessposition* but pthread_create() needs a function pointer to a function taking a void* argument
 
 	int maxDepth = 1, j;
 	char moveNota[6];
 	chessposition tmpPos, tmpMoveList[200];
+	chessposition* position = (chessposition*) _position;
 	pv curPV;
 
 	// The search shouldn't use something that might be left over
@@ -379,6 +380,7 @@ void search(chessposition *position) {
 		printf("bestmove %s\n", moveNota);
 	}
 	fflush(stdout);
+	return NULL;
 }
 
 pv minimaxinfo(chessposition *position, int depth, int level) {

@@ -510,14 +510,14 @@ int main(int argc, char *argv[]) {
 				}
 
 				// Creating the thread for the timing
-				if (pthread_create(&thTime, NULL, (void*) &timemgmt,
-						&timeInfo)) {
+				if (pthread_create(&thTime, NULL, &timemgmt,
+						(void*) &timeInfo)) {
 					printf("ERROR, could not create time thread!\n");
 					return EXIT_FAILURE;
 				}
 				// Creating the thread for the search
-				if (pthread_create(&thSearch, NULL, (void*) &search,
-						&position)) {
+				if (pthread_create(&thSearch, NULL, &search,
+						(void*) &position)) {
 					printf("ERROR, could not create search thread!\n");
 					return EXIT_FAILURE;
 				}

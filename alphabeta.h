@@ -25,7 +25,7 @@ struct bestmov {
 extern int go;
 extern pv prinvar;
 
-void search(chessposition* position);
+void* search(void* _position);
 int staticeval(chessposition pos);
 struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		int beta);
