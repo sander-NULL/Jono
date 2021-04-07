@@ -34,4 +34,9 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth,
 pv iterativeDeepening(chessposition *position, int maxDepth);
 pv minimaxinfo(chessposition *position, int depth, int level);
 
+#ifdef SEARCHTEST		// Only offer this function if searchtest.c includes this header
+pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
+		pv *pvguess, int alpha, int beta);
+#endif
+
 #endif /* ALPHABETA_H_ */
