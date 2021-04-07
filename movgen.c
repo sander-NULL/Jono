@@ -1658,6 +1658,152 @@ int generatemoves(chessposition position, chessposition *moves) { /* Generates a
 	return movecount;
 }
 
+char getfile(int sqi) {
+	switch (sqi % 8) {
+	case 0:
+		return 'a';
+		break;
+	case 1:
+		return 'b';
+		break;
+	case 2:
+		return 'c';
+		break;
+	case 3:
+		return 'd';
+		break;
+	case 4:
+		return 'e';
+		break;
+	case 5:
+		return 'f';
+		break;
+	case 6:
+		return 'g';
+		break;
+	case 7:
+		return 'h';
+		break;
+	}
+	return -1;
+}
+
+char getrank(int sqi) {
+	switch (sqi / 8) {
+	case 0:
+		return '1';
+		break;
+	case 1:
+		return '2';
+		break;
+	case 2:
+		return '3';
+		break;
+	case 3:
+		return '4';
+		break;
+	case 4:
+		return '5';
+		break;
+	case 5:
+		return '6';
+		break;
+	case 6:
+		return '7';
+		break;
+	case 7:
+		return '8';
+		break;
+	}
+	return -1;
+}
+
+int getmovenotation(chessposition *before, chessposition *now, char *notation) {
+	// Returns the notation of the move starting in position *before and resulting in position *now
+	// in long algebraic notation at notation
+	int player;
+	int startsqi, endsqi;
+
+	player = before->states.tomove;
+	notation[4] = '\0';
+	notation[5] = '\0';
+
+	if (before->king[player] != now->king[player]) { /* The king moved */
+		startsqi = FSB(before->king[player]) - 1;
+		endsqi = FSB(now->king[player]) - 1;
+		notation[0] = getfile(startsqi);
+		notation[1] = getrank(startsqi);
+		notation[2] = getfile(endsqi);
+		notation[3] = getrank(endsqi);
+	} else if (before->pawns[player] != now->pawns[player]) { /* A pawn moved */
+		startsqi = FSB(before->pawns[player] & ~(now->pawns[player])) - 1;
+		notation[0] = getfile(startsqi);
+		notation[1] = getrank(startsqi);
+		if (POPCNT(before->pawns[player]) == POPCNT(now->pawns[player])) { /* Amount of players pawns has not changed */
+			endsqi = FSB(now->pawns[player] & ~(before->pawns[player])) - 1;
+			notation[2] = getfile(endsqi);
+			notation[3] = getrank(endsqi);
+		} else {
+			if (POPCNT(before->queens[player]) != POPCNT(now->queens[player])) { /* Pawn promoted to queen */
+				endsqi = FSB(now->queens[player] & ~(before->queens[player]))
+						- 1;
+				notation[2] = getfile(endsqi);
+				notation[3] = getrank(endsqi);
+				notation[4] = 'q';
+			} else if (POPCNT(
+					before->rooks[player]) != POPCNT(now->rooks[player])) { /* Pawn promoted to rook */
+				endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
+				notation[2] = getfile(endsqi);
+				notation[3] = getrank(endsqi);
+				notation[4] = 'r';
+			} else if (POPCNT(
+					before->bishops[player]) != POPCNT(now->bishops[player])) { /* Pawn promoted to bishop */
+				endsqi = FSB(now->bishops[player] & ~(before->bishops[player]))
+						- 1;
+				notation[2] = getfile(endsqi);
+				notation[3] = getrank(endsqi);
+				notation[4] = 'b';
+			} else if (POPCNT(
+					before->knights[player]) != POPCNT(now->knights[player])) { /* Pawn promoted to knight */
+				endsqi = FSB(now->knights[player] & ~(before->knights[player]))
+						- 1;
+				notation[2] = getfile(endsqi);
+				notation[3] = getrank(endsqi);
+				notation[4] = 'n';
+			}
+		}
+	} else if (before->queens[player] != now->queens[player]) { /* A queen moved */
+		startsqi = FSB(before->queens[player] & ~(now->queens[player])) - 1;
+		endsqi = FSB(now->queens[player] & ~(before->queens[player])) - 1;
+		notation[0] = getfile(startsqi);
+		notation[1] = getrank(startsqi);
+		notation[2] = getfile(endsqi);
+		notation[3] = getrank(endsqi);
+	} else if (before->rooks[player] != now->rooks[player]) { /* A rook moved */
+		startsqi = FSB(before->rooks[player] & ~(now->rooks[player])) - 1;
+		endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
+		notation[0] = getfile(startsqi);
+		notation[1] = getrank(startsqi);
+		notation[2] = getfile(endsqi);
+		notation[3] = getrank(endsqi);
+	} else if (before->bishops[player] != now->bishops[player]) { /* A bishop moved */
+		startsqi = FSB(before->bishops[player] & ~(now->bishops[player])) - 1;
+		endsqi = FSB(now->bishops[player] & ~(before->bishops[player])) - 1;
+		notation[0] = getfile(startsqi);
+		notation[1] = getrank(startsqi);
+		notation[2] = getfile(endsqi);
+		notation[3] = getrank(endsqi);
+	} else if (before->knights[player] != now->knights[player]) { /* A knight moved */
+		startsqi = FSB(before->knights[player] & ~(now->knights[player])) - 1;
+		endsqi = FSB(now->knights[player] & ~(before->knights[player])) - 1;
+		notation[0] = getfile(startsqi);
+		notation[1] = getrank(startsqi);
+		notation[2] = getfile(endsqi);
+		notation[3] = getrank(endsqi);
+	}
+	return EXIT_SUCCESS;
+}
+
 //int main(void) {
 //	chessposition position, movelist[200];
 //	char testfen[] = "7R/1bk5/6Q1/2B5/8/8/8/2Q1K2R w K - 0 1";

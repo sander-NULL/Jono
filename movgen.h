@@ -37,5 +37,6 @@ void destroymagictbls(void);
 bitboard getattsquares(int player, chessposition position);
 bitboard getpieces(int player, chessposition *position);
 int generatemoves(chessposition position, chessposition *moves);
+int getmovenotation(chessposition *before, chessposition *now, char *notation);
 
 #endif /* MOVGEN_H_ */
