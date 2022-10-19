@@ -3,7 +3,7 @@
  *
  *  Created on: Dec 20, 2020
  *      Author: sander
- *      Usage: searchtest	--timeout t (seconds, integer between 1 and 9999, the latter bound is due to format reasons)
+ *      Usage: searchtest	--timeout t (seconds, integer between 1 and 9999, the latter bound is due to format reasons, default is 10s)
  *      					--pos position (line in testpositions.txt)
  */
 
@@ -97,6 +97,11 @@ int main(int argc, char *argv[]) {
 	}
 	do {
 		if (fgets(fenString, 100, searchtest) == NULL) {
+			if (feof(searchtest)) {
+				printf("End of file reached.\n");
+				fprintf(logfile, "End of file reached.\n");
+				return EXIT_SUCCESS;
+			}
 			printf("Error reading FEN.\n");
 			fprintf(logfile, "Error reading FEN.\n");
 			return EXIT_FAILURE;
