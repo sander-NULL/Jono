@@ -264,7 +264,7 @@ void initrookmasks(void) {
 }
 
 void initbishopocc(void) {
-	int i, j, sqi, popcount, size, setbit[12];
+	int i, j, sqi, popcount, size, setbit[12] = {0};
 	bitboard tmp;
 
 	initbishopmasks(); /* Initialize the bishopmasks */
@@ -294,7 +294,7 @@ void initbishopocc(void) {
 }
 
 void initrookocc(void) { /* Initializes the occupancies for the rook */
-	int i, j, sqi, popcount, size, setbit[12];
+	int i, j, sqi, popcount, size, setbit[12] = {0};
 	bitboard tmp;
 
 	initrookmasks(); /* Initialize the rookmasks */

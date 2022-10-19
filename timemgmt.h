@@ -17,5 +17,5 @@ typedef struct timeInfo_t {
 
 extern int go;
 
-void timemgmt (timeInfo_t* timeInfo);
+void* timemgmt (void* _timeInfo);
 #endif /* TIMEMGMT_H_ */

@@ -25,7 +25,7 @@ struct bestmov {
 extern int go;
 extern pv prinvar;
 
-void search(chessposition* position);
+void* search(void* _position);
 int staticeval(chessposition pos);
 struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		int beta);
@@ -33,5 +33,10 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth,
 		int depth, int alpha, int beta);
 pv iterativeDeepening(chessposition *position, int maxDepth);
 pv minimaxinfo(chessposition *position, int depth, int level);
+
+#ifdef SEARCHTEST		// Only offer this function if searchtest.c includes this header
+pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
+		pv *pvguess, int alpha, int beta);
+#endif
 
 #endif /* ALPHABETA_H_ */

@@ -13,10 +13,21 @@
 #include "debug.h"
 #include "alphabeta.h"
 
-extern int getmovenotation(chessposition *before, chessposition *now,
-		char *notation);
+//extern int getmovenotation(chessposition *before, chessposition *now,
+//		char *notation);
+
+// If we are on a test bench we will need these variables
+#ifdef SEARCHTEST
+#pragma message "Compiling for test bench."
+extern long nodes;
+extern long staticEvals;
+extern long gameEnds;
+#endif
 
 int staticeval(chessposition pos) {
+#ifdef SEARCHTEST
+	staticEvals++;
+#endif
 	return 900 * POPCNT(pos.queens[WHITE]) - 900 * POPCNT(pos.queens[BLACK])
 			+ 500 * POPCNT(pos.rooks[WHITE]) - 500 * POPCNT(pos.rooks[BLACK])
 			+ 325 * POPCNT(pos.bishops[WHITE])
@@ -144,6 +155,10 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 	pv tmp;
 	pv ret = { .eval = alpha, .len = 0 };
 
+#ifdef SEARCHTEST
+	nodes++;
+#endif
+
 	player = position->states.tomove;
 	playerOpp = (player + 1) % 2;
 	sign = (player == WHITE) ? 1 : -1;
@@ -159,6 +174,9 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 	movCount = generatemoves(*position, movList);
 	if (movCount == 0) {
 		// Checkmate or stalemate detected
+#ifdef SEARCHTEST
+		gameEnds++;
+#endif
 		if ((position->king[player] & getattsquares(playerOpp, *position))
 				== 0) {
 			// Stalemate detected
@@ -194,13 +212,18 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
 		pv *pvguess, int alpha, int beta) {
 
-	// Is this really correct?
+#pragma message "To do: Add counter for how many times this function is called."
+#pragma message "Check correctness of algorithm with position in comments."
 	// Check r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1 in an iterative deepening framework
 	// It seems to be slower than going for the depth right away
 	int i = 0, firstIndex, bestIndex, movCount, player, playerOpp;
 	chessposition movList[200];
 	pv tmp;
 	pv ret = { .eval = alpha, .len = 0 };
+
+#ifdef SEARCHTEST
+	nodes++;
+#endif
 
 	player = position->states.tomove;
 	playerOpp = (player + 1) % 2;
@@ -295,11 +318,12 @@ pv iterativeDeepening(chessposition *position, int maxDepth) {
 	return ret;
 }
 
-void search(chessposition *position) {
+void* search(void* _position) { // argument is actually a chessposition* but pthread_create() needs a function pointer to a function taking a void* argument
 
 	int maxDepth = 1, j;
 	char moveNota[6];
 	chessposition tmpPos, tmpMoveList[200];
+	chessposition* position = (chessposition*) _position;
 	pv curPV;
 
 	// The search shouldn't use something that might be left over
@@ -356,6 +380,7 @@ void search(chessposition *position) {
 		printf("bestmove %s\n", moveNota);
 	}
 	fflush(stdout);
+	return NULL;
 }
 
 pv minimaxinfo(chessposition *position, int depth, int level) {

@@ -1,5 +1,5 @@
 /*
- * timeman.c
+ * timemgmt.c
  *
  *  Created on: May 7, 2020
  *      Author: sander
@@ -9,10 +9,11 @@
 #include <math.h>
 #include "timemgmt.h"
 
-void timemgmt(timeInfo_t *timeInfo) {
+void* timemgmt(void *_timeInfo) { // argument is actually a timeInfo_t* but pthread_create() needs a function pointer to a function taking a void* argument
 
 	struct timespec thinkTime;
-	long t;	// Time in milliseconds
+	long t;	// time in milliseconds
+	timeInfo_t *timeInfo = (timeInfo_t*) _timeInfo;
 
 	if (timeInfo->moveTime > -1)
 		t = timeInfo->moveTime;
@@ -22,10 +23,7 @@ void timemgmt(timeInfo_t *timeInfo) {
 	thinkTime.tv_sec = t / 1000;
 	thinkTime.tv_nsec = (t % 1000) * 1000000;
 
-//	thinkTime.tv_sec = 3;
-//	thinkTime.tv_nsec = 500000000;
-	//printf("thinktime = %d sec + %ld nsec\n", thinkTime.tv_sec, thinkTime.tv_nsec);
-
-			nanosleep(&thinkTime, NULL);
+	nanosleep(&thinkTime, NULL);
 	go = 0;
+	return NULL;
 }

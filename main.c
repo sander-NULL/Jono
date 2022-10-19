@@ -1,5 +1,5 @@
 /*
- * ucicomm.c
+ * main.c
  *
  *  Created on: Mar 30, 2020
  *      Author: sander
@@ -17,151 +17,8 @@
 int go;
 pv prinvar;
 
-char getfile(int sqi) {
-	switch (sqi % 8) {
-	case 0:
-		return 'a';
-		break;
-	case 1:
-		return 'b';
-		break;
-	case 2:
-		return 'c';
-		break;
-	case 3:
-		return 'd';
-		break;
-	case 4:
-		return 'e';
-		break;
-	case 5:
-		return 'f';
-		break;
-	case 6:
-		return 'g';
-		break;
-	case 7:
-		return 'h';
-		break;
-	}
-	return -1;
-}
-
-char getrank(int sqi) {
-	switch (sqi / 8) {
-	case 0:
-		return '1';
-		break;
-	case 1:
-		return '2';
-		break;
-	case 2:
-		return '3';
-		break;
-	case 3:
-		return '4';
-		break;
-	case 4:
-		return '5';
-		break;
-	case 5:
-		return '6';
-		break;
-	case 6:
-		return '7';
-		break;
-	case 7:
-		return '8';
-		break;
-	}
-	return -1;
-}
-
-int getmovenotation(chessposition *before, chessposition *now, char *notation) {
-	int player;
-	int startsqi, endsqi;
-
-	player = before->states.tomove;
-	notation[4] = '\0';
-	notation[5] = '\0';
-
-	if (before->king[player] != now->king[player]) { /* The king moved */
-		startsqi = FSB(before->king[player]) - 1;
-		endsqi = FSB(now->king[player]) - 1;
-		notation[0] = getfile(startsqi);
-		notation[1] = getrank(startsqi);
-		notation[2] = getfile(endsqi);
-		notation[3] = getrank(endsqi);
-	} else if (before->pawns[player] != now->pawns[player]) { /* A pawn moved */
-		startsqi = FSB(before->pawns[player] & ~(now->pawns[player])) - 1;
-		notation[0] = getfile(startsqi);
-		notation[1] = getrank(startsqi);
-		if (POPCNT(before->pawns[player]) == POPCNT(now->pawns[player])) { /* Amount of players pawns has not changed */
-			endsqi = FSB(now->pawns[player] & ~(before->pawns[player])) - 1;
-			notation[2] = getfile(endsqi);
-			notation[3] = getrank(endsqi);
-		} else {
-			if (POPCNT(before->queens[player]) != POPCNT(now->queens[player])) { /* Pawn promoted to queen */
-				endsqi = FSB(now->queens[player] & ~(before->queens[player]))
-						- 1;
-				notation[2] = getfile(endsqi);
-				notation[3] = getrank(endsqi);
-				notation[4] = 'q';
-			} else if (POPCNT(
-					before->rooks[player]) != POPCNT(now->rooks[player])) { /* Pawn promoted to rook */
-				endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
-				notation[2] = getfile(endsqi);
-				notation[3] = getrank(endsqi);
-				notation[4] = 'r';
-			} else if (POPCNT(
-					before->bishops[player]) != POPCNT(now->bishops[player])) { /* Pawn promoted to bishop */
-				endsqi = FSB(now->bishops[player] & ~(before->bishops[player]))
-						- 1;
-				notation[2] = getfile(endsqi);
-				notation[3] = getrank(endsqi);
-				notation[4] = 'b';
-			} else if (POPCNT(
-					before->knights[player]) != POPCNT(now->knights[player])) { /* Pawn promoted to knight */
-				endsqi = FSB(now->knights[player] & ~(before->knights[player]))
-						- 1;
-				notation[2] = getfile(endsqi);
-				notation[3] = getrank(endsqi);
-				notation[4] = 'n';
-			}
-		}
-	} else if (before->queens[player] != now->queens[player]) { /* A queen moved */
-		startsqi = FSB(before->queens[player] & ~(now->queens[player])) - 1;
-		endsqi = FSB(now->queens[player] & ~(before->queens[player])) - 1;
-		notation[0] = getfile(startsqi);
-		notation[1] = getrank(startsqi);
-		notation[2] = getfile(endsqi);
-		notation[3] = getrank(endsqi);
-	} else if (before->rooks[player] != now->rooks[player]) { /* A rook moved */
-		startsqi = FSB(before->rooks[player] & ~(now->rooks[player])) - 1;
-		endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
-		notation[0] = getfile(startsqi);
-		notation[1] = getrank(startsqi);
-		notation[2] = getfile(endsqi);
-		notation[3] = getrank(endsqi);
-	} else if (before->bishops[player] != now->bishops[player]) { /* A bishop moved */
-		startsqi = FSB(before->bishops[player] & ~(now->bishops[player])) - 1;
-		endsqi = FSB(now->bishops[player] & ~(before->bishops[player])) - 1;
-		notation[0] = getfile(startsqi);
-		notation[1] = getrank(startsqi);
-		notation[2] = getfile(endsqi);
-		notation[3] = getrank(endsqi);
-	} else if (before->knights[player] != now->knights[player]) { /* A knight moved */
-		startsqi = FSB(before->knights[player] & ~(now->knights[player])) - 1;
-		endsqi = FSB(now->knights[player] & ~(before->knights[player])) - 1;
-		notation[0] = getfile(startsqi);
-		notation[1] = getrank(startsqi);
-		notation[2] = getfile(endsqi);
-		notation[3] = getrank(endsqi);
-	}
-	return EXIT_SUCCESS;
-}
-
-int makemove(chessposition *position, char *move) { /* Makes a move given in long algebraic notation, does not check for legality */
+int makemove(chessposition *position, char *move) {
+	// Makes a move given in long algebraic notation, does not check for legality
 
 	int file, rank, startsqi, endsqi;
 	int player, playeropp;
@@ -307,7 +164,7 @@ int makemove(chessposition *position, char *move) { /* Makes a move given in lon
 	if (start == E8)
 		position->states.kingcastle[BLACK] = 0;
 	if (start == E8)
-		position->states.kingcastle[BLACK] = 0;
+		position->states.queencastle[BLACK] = 0;
 
 	/* If pawn jumped, en passant is possible */
 	if ((start & position->pawns[player]) != 0 && abs(endsqi - startsqi) == 16) /* Has a pawn moved AND did it jump? */
@@ -393,7 +250,7 @@ int makemove(chessposition *position, char *move) { /* Makes a move given in lon
 int main(int argc, char *argv[]) {
 	int i;
 	char fen[100];				// Will contain FEN string
-	char rawCommand[5000];		// Will contain on-parsed raw command sent from the GUI
+	char rawCommand[5000];		// Will contain un-parsed raw command sent from the GUI
 	char *tmp;					// A temporary variable for parsing
 	char *command[5000]; 		// Pointers to parsed commands, possible are 5000 commands
 	FILE *log;					// For the log file
@@ -414,7 +271,7 @@ int main(int argc, char *argv[]) {
 			fflush(log);
 
 			tmp = rawCommand; /* For parsing */
-			for (i = 0; i <= 5000; i++) {
+			for (i = 0; i < 5000; i++) {
 				if (rawCommand[i] == '\n')
 					rawCommand[i] = '\0'; /* For parsing reasons */
 			}
@@ -510,14 +367,14 @@ int main(int argc, char *argv[]) {
 				}
 
 				// Creating the thread for the timing
-				if (pthread_create(&thTime, NULL, (void*) &timemgmt,
-						&timeInfo)) {
+				if (pthread_create(&thTime, NULL, &timemgmt,
+						(void*) &timeInfo)) {
 					printf("ERROR, could not create time thread!\n");
 					return EXIT_FAILURE;
 				}
 				// Creating the thread for the search
-				if (pthread_create(&thSearch, NULL, (void*) &search,
-						&position)) {
+				if (pthread_create(&thSearch, NULL, &search,
+						(void*) &position)) {
 					printf("ERROR, could not create search thread!\n");
 					return EXIT_FAILURE;
 				}
