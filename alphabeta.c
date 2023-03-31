@@ -41,9 +41,15 @@ struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		int beta) {
 
 	int i = 0, movcount, player, playeropp, sign;
-	chessposition movlist[200];
+	chessposition qMovList[200];	// location for the list of the quiet moves
+	chessposition lMovList[200];	// location for the list of the loud moves
+	moveList quietMoves, loudMoves;
 	struct bestmov tmp;
 	struct bestmov ret;
+
+	// let the lists point the the location
+	quietMoves.list = qMovList;
+	loudMoves.list = lMovList;
 
 	player = position->states.tomove;
 	playeropp = (player + 1) % 2;
@@ -61,7 +67,7 @@ struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		ret.i = -1;
 		return ret;
 	} else {
-		movcount = generatemoves(*position, movlist);
+		movcount = generatemoves(*position, &loudMoves, &quietMoves);
 		if (movcount == 0) { /* Checkmate or stalemate detected */
 			if ((position->king[player] & getattsquares(playeropp, *position))
 					== 0) {
