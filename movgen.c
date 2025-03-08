@@ -692,7 +692,7 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 
 int generatemoves(chessposition position, chessposition* loudMoves, chessposition* quietMoves, int* lenLoud, int* lenQuiet) {
 	/* Generates all legal moves in given position, stores captures and promotions in "loudMoves" and its length in lenLoud, */
-	/* the rest in "quietMoves" (its length in lenQuiet) and returns the sum of their number */
+	/* the rest in "quietMoves" (its length in lenQuiet) and returns the sum of their lengths */
 	/* When moving it does NOT CAPTURE A KING, opponent's king cannot be in check */
 
 	/* PERFORMANCE ISSUE: When king moves (castles), only attack sets of same color sliding pieces need to be updated? */

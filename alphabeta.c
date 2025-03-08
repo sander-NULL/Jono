@@ -40,16 +40,11 @@ int staticeval(chessposition pos) {
 struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		int beta) {
 
-	int i = 0, movcount, player, playeropp, sign;
-	chessposition qMovList[200];	// location for the list of the quiet moves
-	chessposition lMovList[200];	// location for the list of the loud moves
-	moveList quietMoves, loudMoves;
+	int i = 0, movcount, player, playeropp, sign, lenLoud, lenQuiet;
+	chessposition quietMoves[200];	// location for the list of the quiet moves
+	chessposition loudMoves[200];	// location for the list of the loud moves
 	struct bestmov tmp;
 	struct bestmov ret;
-
-	// let the lists point the the location
-	quietMoves.list = qMovList;
-	loudMoves.list = lMovList;
 
 	player = position->states.tomove;
 	playeropp = (player + 1) % 2;
@@ -67,7 +62,7 @@ struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		ret.i = -1;
 		return ret;
 	} else {
-		movcount = generatemoves(*position, &loudMoves, &quietMoves);
+		movcount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
 		if (movcount == 0) { /* Checkmate or stalemate detected */
 			if ((position->king[player] & getattsquares(playeropp, *position))
 					== 0) {
@@ -111,8 +106,9 @@ struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 struct bestmov alphabeta_negamax_bestmov(chessposition *position, int maxDepth,
 		int depth, int alpha, int beta) {
 
-	int i = 0, movcount, player, playeropp, sign;
-	chessposition movlist[200];
+	int i = 0, movcount, player, playeropp, sign, lenLoud, lenQuiet;
+	chessposition loudMoves[200];
+	chessposition quietMoves[200];
 	struct bestmov tmp;
 	struct bestmov ret = { .eval = alpha, .i = 0 };
 
@@ -127,7 +123,7 @@ struct bestmov alphabeta_negamax_bestmov(chessposition *position, int maxDepth,
 		return ret;
 	}
 
-	movcount = generatemoves(*position, movlist);
+	movcount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
 	if (movcount == 0) { // Checkmate or stalemate detected
 		if ((position->king[player] & getattsquares(playeropp, *position))
 				== 0) {
@@ -156,8 +152,9 @@ struct bestmov alphabeta_negamax_bestmov(chessposition *position, int maxDepth,
 pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 		int alpha, int beta) {
 
-	int i = 0, bestIndex, movCount, player, playerOpp, sign;
-	chessposition movList[200];
+	int i = 0, bestIndex, movCount, player, playerOpp, sign, lenLoud, lenQuiet;
+	chessposition loudMoves[200];
+	chessposition quietMoves[200];
 	pv tmp;
 	pv ret = { .eval = alpha, .len = 0 };
 
@@ -177,7 +174,7 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 		return ret;
 	}
 
-	movCount = generatemoves(*position, movList);
+	movCount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
 	if (movCount == 0) {
 		// Checkmate or stalemate detected
 #ifdef SEARCHTEST
@@ -222,8 +219,9 @@ pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
 #pragma message "Check correctness of algorithm with position in comments."
 	// Check r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1 in an iterative deepening framework
 	// It seems to be slower than going for the depth right away
-	int i = 0, firstIndex, bestIndex, movCount, player, playerOpp;
-	chessposition movList[200];
+	int i = 0, firstIndex, bestIndex, movCount, player, playerOpp, lenLoud, lenQuiet;
+	chessposition loudMoves[200];
+	chessposition quietMoves[200];
 	pv tmp;
 	pv ret = { .eval = alpha, .len = 0 };
 
@@ -241,7 +239,7 @@ pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
 //		return ret;
 //	}
 
-	movCount = generatemoves(*position, movList);
+	movCount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
 	if (movCount == 0) {
 		// Checkmate or stalemate detected
 		if ((position->king[player] & getattsquares(playerOpp, *position))
