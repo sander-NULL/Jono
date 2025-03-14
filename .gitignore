@@ -2,4 +2,5 @@
 *.log
 /Debug/
 /Release/
-/build/
+/out/
+CMakePresets.json
