@@ -1,17 +1,5 @@
 *.o
 *.log
-/Debug/Jono
-/Debug/compare
-/Debug/searchtest
-/Debug/searchtest1
-/Debug/searchtest2
-/Debug/perft
-/Release/Jono
-/Release/compare
-/Release/searchtest
-/Release/searchtest1
-/Release/searchtest2
-/Release/perft
 /Debug/
 /Release/
 /build/
