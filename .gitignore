@@ -3,4 +3,5 @@
 /Debug/
 /Release/
 /out/
+/build/
 CMakePresets.json
