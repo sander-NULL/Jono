@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
 				go = 1;
 				i = 1;
 				timeInfo.moveTime = -1;
-				timeInfo.toMove = position.states.tomove;
+				timeInfo.toMove = position.states.toMove;
 				while (command[i] != NULL) {
 					if (strcmp(command[i], "wtime") == 0)
 						timeInfo.timeLeft[0] = strtol(
