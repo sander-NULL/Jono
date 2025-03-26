@@ -9,7 +9,7 @@
 #include "bitboards.h"
 #include "movgen.h"
 
-void visualize(bitboard board) { /* Only to visualize bitboards, need for debugging reasons */
+void visualize(bitboard board) { /* Only to visualize bitboards, needed for debugging reasons */
 	int i, j;
 	char visboard[8][8];
 
@@ -31,7 +31,7 @@ void visualize(bitboard board) { /* Only to visualize bitboards, need for debugg
 	printf("   a b c d e f g h\n");
 }
 
-int vispos(chessposition pos) { /* Visualize position, need for debugging reasons */
+int vispos(chessposition pos) { /* Visualize position, needed for debugging reasons */
 
 	bitboard population;
 	int i, j;

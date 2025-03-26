@@ -690,29 +690,20 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 	return EXIT_SUCCESS;
 }
 
-int generatemoves(chessposition position, chessposition* loudMoves, chessposition* quietMoves, int* lenLoud, int* lenQuiet) {
-	/* Generates all legal moves in given position, stores captures and promotions in "loudMoves" and its length in lenLoud, */
-	/* the rest in "quietMoves" (its length in lenQuiet) and returns the sum of their lengths */
+int generatemoves(chessposition position, chessposition *moves) {
+	/* Generates all legal moves in given position, stores them in "moves" and returns their number */
 	/* When moving it does NOT CAPTURE A KING, opponent's king cannot be in check */
 
 	/* PERFORMANCE ISSUE: When king moves (castles), only attack sets of same color sliding pieces need to be updated? */
 	/*						Give only pointer to position? */
 
-	bitboard possible, forbidden, pieces, rookocc, bishopocc, allpieces, attackedPieces, attackedSquares;
+	bitboard possible, forbidden, pieces, rookocc, bishopocc, allpieces;
 	chessposition move = position;
 	int movecount = 0; /* Number of legal moves in given position */
 	int player, playeropp, sqi, startsqi, endsqi;
 
 	player = position.states.tomove;
 	playeropp = (player + 1) % 2; /* The one not to move */
-
-	attackedSquares = getattsquares(player);
-
-	/* According to MVV/LVA the first potential victim is a queen */
-	attackedPieces = position.queens[playeropp] & attackedSquares;
-	while (FSB(attackedPieces) != 0) {	/* While there are attacked queens */
-
-	}
 
 	/* First generate moves for the king */
 	/* Calculate possible squares for the king */
@@ -764,7 +755,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			move.states.enpassant = -1; /* En passant is not possible */
 			move.states.plies = 0; /* King just captured a piece */
 			move.states.tomove = playeropp; /* Now the opponent is to move */
-			quietMoves[movecount] = move;
+			moves[movecount] = move;
 			movecount++;
 		}
 	}
@@ -802,7 +793,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			move.states.enpassant = -1; /* En passant is not possible */
 			move.states.plies++; /* King did not capture a piece */
 			move.states.tomove = playeropp; /* Now the opponent is to move */
-			quietMoves[movecount] = move;
+			moves[movecount] = move;
 			movecount++;
 		}
 	}
@@ -864,7 +855,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Queen just captured a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -907,7 +898,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Queen did not capture a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -972,7 +963,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Rook just captured a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1017,7 +1008,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Rook did not capture a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1078,7 +1069,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Bishop just captured a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1118,7 +1109,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Bishop did not capture a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1175,7 +1166,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Knight just captured a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1211,7 +1202,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Knight did not capture a piece */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1275,7 +1266,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Pawn just moved */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 				/* Since the promotion to a queen was a legal move, all other promotions are as well */
 				/* We just have to change the queen to the other pieces and add the moves */
@@ -1290,7 +1281,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 						* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
 				CB(move.rooks[player], endsqi + 1); /* Clear promoted rook */
@@ -1304,7 +1295,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 						>> bishopmagic[endsqi].shift];
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
 				CB(move.bishops[player], endsqi + 1); /* Clear promoted bishop */
@@ -1316,7 +1307,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 			CB(possible, FSB(possible));
@@ -1358,7 +1349,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Pawn just moved */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 				/* Since the promotion to a queen was a legal move, all other promotions are as well */
 				/* We just have to change the queen to the other pieces and add the moves */
@@ -1374,7 +1365,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
 				CB(move.rooks[player], endsqi + 1); /* Clear promoted rook */
@@ -1388,7 +1379,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 						>> bishopmagic[endsqi].shift];
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
 				CB(move.bishops[player], endsqi + 1); /* Clear promoted bishop */
@@ -1400,7 +1391,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1456,7 +1447,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* A pawn just moved */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1490,7 +1481,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* A pawn just moved */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1537,7 +1528,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = GETFILE(startsqi); /* En passant possible on that file */
 				move.states.plies = 0; /* A pawn just moved */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1586,7 +1577,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* A pawn just moved */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 			CB(pieces, FSB(pieces));
@@ -1625,7 +1616,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies++; /* No capture and no pawn move */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1663,7 +1654,7 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				move.states.enpassant = -1; /* En passant is not possible */
 				move.states.plies++; /* No capture and no pawn move */
 				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
