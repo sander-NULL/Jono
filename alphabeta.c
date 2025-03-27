@@ -28,25 +28,24 @@ int staticeval(chessposition pos) {
 #ifdef SEARCHTEST
 	staticEvals++;
 #endif
-	return 900 * POPCNT(pos.queens[WHITE]) - 900 * POPCNT(pos.queens[BLACK])
-			+ 500 * POPCNT(pos.rooks[WHITE]) - 500 * POPCNT(pos.rooks[BLACK])
-			+ 325 * POPCNT(pos.bishops[WHITE])
-			- 325 * POPCNT(pos.bishops[BLACK])
-			+ 300 * POPCNT(pos.knights[WHITE])
-			- 300 * POPCNT(pos.knights[BLACK]) + 100 * POPCNT(pos.pawns[WHITE])
-			- 100 * POPCNT(pos.pawns[BLACK]);
+	return 900 * POPCNT(pos.pieces[QUEENS][WHITE]) - 900 * POPCNT(pos.pieces[QUEENS][BLACK])
+			+ 500 * POPCNT(pos.pieces[ROOKS][WHITE]) - 500 * POPCNT(pos.pieces[ROOKS][BLACK])
+			+ 325 * POPCNT(pos.pieces[BISHOPS][WHITE])
+			- 325 * POPCNT(pos.pieces[BISHOPS][BLACK])
+			+ 300 * POPCNT(pos.pieces[KNIGHTS][WHITE])
+			- 300 * POPCNT(pos.pieces[KNIGHTS][BLACK]) + 100 * POPCNT(pos.pieces[PAWNS][WHITE])
+			- 100 * POPCNT(pos.pieces[PAWNS][BLACK]);
 }
 
 struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		int beta) {
 
-	int i = 0, movcount, player, playeropp, sign, lenLoud, lenQuiet;
-	chessposition quietMoves[200];	// location for the list of the quiet moves
-	chessposition loudMoves[200];	// location for the list of the loud moves
+	int i = 0, movcount, player, playeropp, sign;
+	chessposition movlist[200];
 	struct bestmov tmp;
 	struct bestmov ret;
 
-	player = position->states.tomove;
+	player = position->states.toMove;
 	playeropp = (player + 1) % 2;
 	sign = (player == WHITE) ? 1 : -1;
 
@@ -62,9 +61,9 @@ struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 		ret.i = -1;
 		return ret;
 	} else {
-		movcount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
+		movcount = generatemoves(*position, movlist);
 		if (movcount == 0) { /* Checkmate or stalemate detected */
-			if ((position->king[player] & getattsquares(playeropp, *position))
+			if ((position->pieces[KING][player] & getattsquares(playeropp, *position))
 					== 0) {
 				ret.eval = 0;
 				ret.i = -1;
@@ -106,13 +105,12 @@ struct bestmov alphabeta_bestmov(chessposition *position, int depth, int alpha,
 struct bestmov alphabeta_negamax_bestmov(chessposition *position, int maxDepth,
 		int depth, int alpha, int beta) {
 
-	int i = 0, movcount, player, playeropp, sign, lenLoud, lenQuiet;
-	chessposition loudMoves[200];
-	chessposition quietMoves[200];
+	int i = 0, movcount, player, playeropp, sign;
+	chessposition movlist[200];
 	struct bestmov tmp;
 	struct bestmov ret = { .eval = alpha, .i = 0 };
 
-	player = position->states.tomove;
+	player = position->states.toMove;
 	playeropp = (player + 1) % 2;
 	sign = (player == WHITE) ? 1 : -1;
 
@@ -123,9 +121,9 @@ struct bestmov alphabeta_negamax_bestmov(chessposition *position, int maxDepth,
 		return ret;
 	}
 
-	movcount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
+	movcount = generatemoves(*position, movlist);
 	if (movcount == 0) { // Checkmate or stalemate detected
-		if ((position->king[player] & getattsquares(playeropp, *position))
+		if ((position->pieces[KING][player] & getattsquares(playeropp, *position))
 				== 0) {
 			ret.eval = 0;
 			ret.i = 0;
@@ -152,9 +150,8 @@ struct bestmov alphabeta_negamax_bestmov(chessposition *position, int maxDepth,
 pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 		int alpha, int beta) {
 
-	int i = 0, bestIndex, movCount, player, playerOpp, sign, lenLoud, lenQuiet;
-	chessposition loudMoves[200];
-	chessposition quietMoves[200];
+	int i = 0, bestIndex, movCount, player, playerOpp, sign;
+	chessposition movList[200];
 	pv tmp;
 	pv ret = { .eval = alpha, .len = 0 };
 
@@ -162,7 +159,7 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 	nodes++;
 #endif
 
-	player = position->states.tomove;
+	player = position->states.toMove;
 	playerOpp = (player + 1) % 2;
 	sign = (player == WHITE) ? 1 : -1;
 
@@ -174,13 +171,13 @@ pv alphabeta_negamax_pv(chessposition *position, int maxDepth, int depth,
 		return ret;
 	}
 
-	movCount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
+	movCount = generatemoves(*position, movList);
 	if (movCount == 0) {
 		// Checkmate or stalemate detected
 #ifdef SEARCHTEST
 		gameEnds++;
 #endif
-		if ((position->king[player] & getattsquares(playerOpp, *position))
+		if ((position->pieces[KING][player] & getattsquares(playerOpp, *position))
 				== 0) {
 			// Stalemate detected
 			ret.eval = 0;
@@ -219,9 +216,8 @@ pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
 #pragma message "Check correctness of algorithm with position in comments."
 	// Check r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1 in an iterative deepening framework
 	// It seems to be slower than going for the depth right away
-	int i = 0, firstIndex, bestIndex, movCount, player, playerOpp, lenLoud, lenQuiet;
-	chessposition loudMoves[200];
-	chessposition quietMoves[200];
+	int i = 0, firstIndex, bestIndex, movCount, player, playerOpp;
+	chessposition movList[200];
 	pv tmp;
 	pv ret = { .eval = alpha, .len = 0 };
 
@@ -229,7 +225,7 @@ pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
 	nodes++;
 #endif
 
-	player = position->states.tomove;
+	player = position->states.toMove;
 	playerOpp = (player + 1) % 2;
 
 	// Are we at a leaf node?
@@ -239,10 +235,10 @@ pv alphabeta_negamax_pvguess(chessposition *position, int maxDepth, int depth,
 //		return ret;
 //	}
 
-	movCount = generatemoves(*position, loudMoves, quietMoves, &lenLoud, &lenQuiet);
+	movCount = generatemoves(*position, movList);
 	if (movCount == 0) {
 		// Checkmate or stalemate detected
-		if ((position->king[player] & getattsquares(playerOpp, *position))
+		if ((position->pieces[KING][player] & getattsquares(playerOpp, *position))
 				== 0) {
 			// Stalemate detected
 			ret.eval = 0;
@@ -404,13 +400,13 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 		return ret;
 	}
 
-	player = position->states.tomove;
+	player = position->states.toMove;
 	playeropp = (player + 1) % 2;
 	sign = (player == WHITE) ? -1 : 1;
 	movcount = generatemoves(*position, movlist);
 
 	if (movcount == 0) { /* Checkmate or stalemate detected */
-		if ((position->king[player] & getattsquares(playeropp, *position))
+		if ((position->pieces[KING][player] & getattsquares(playeropp, *position))
 				== 0) {
 			ret.eval = 0;
 			ret.pvi[0] = 0;
@@ -513,78 +509,78 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 //	int player;
 //	int startsqi, endsqi;
 //
-//	player = before->states.tomove;
+//	player = before->states.toMove;
 //	notation[4] = '\0';
 //	notation[5] = '\0';
 //
-//	if (before->king[player] != now->king[player]) { /* The king moved */
-//		startsqi = FSB(before->king[player]) - 1;
-//		endsqi = FSB(now->king[player]) - 1;
+//	if (before->pieces[KING][player] != now->pieces[KING][player]) { /* The king moved */
+//		startsqi = FSB(before->pieces[KING][player]) - 1;
+//		endsqi = FSB(now->pieces[KING][player]) - 1;
 //		notation[0] = getfile(startsqi);
 //		notation[1] = getrank(startsqi);
 //		notation[2] = getfile(endsqi);
 //		notation[3] = getrank(endsqi);
-//	} else if (before->pawns[player] != now->pawns[player]) { /* A pawn moved */
-//		startsqi = FSB(before->pawns[player] & ~(now->pawns[player])) - 1;
+//	} else if (before->pieces[PAWNS][player] != now->pieces[PAWNS][player]) { /* A pawn moved */
+//		startsqi = FSB(before->pieces[PAWNS][player] & ~(now->pieces[PAWNS][player])) - 1;
 //		notation[0] = getfile(startsqi);
 //		notation[1] = getrank(startsqi);
-//		if (POPCNT(before->pawns[player]) == POPCNT(now->pawns[player])) { /* Amount of players pawns has not changed */
-//			endsqi = FSB(now->pawns[player] & ~(before->pawns[player])) - 1;
+//		if (POPCNT(before->pieces[PAWNS][player]) == POPCNT(now->pieces[PAWNS][player])) { /* Amount of players pawns has not changed */
+//			endsqi = FSB(now->pieces[PAWNS][player] & ~(before->pieces[PAWNS][player])) - 1;
 //			notation[2] = getfile(endsqi);
 //			notation[3] = getrank(endsqi);
 //		} else {
-//			if (POPCNT(before->queens[player]) != POPCNT(now->queens[player])) { /* Pawn promoted to queen */
-//				endsqi = FSB(now->queens[player] & ~(before->queens[player]))
+//			if (POPCNT(before->pieces[QUEENS][player]) != POPCNT(now->pieces[QUEENS][player])) { /* Pawn promoted to queen */
+//				endsqi = FSB(now->pieces[QUEENS][player] & ~(before->pieces[QUEENS][player]))
 //						- 1;
 //				notation[2] = getfile(endsqi);
 //				notation[3] = getrank(endsqi);
 //				notation[4] = 'q';
 //			} else if (POPCNT(
-//					before->rooks[player]) != POPCNT(now->rooks[player])) { /* Pawn promoted to rook */
-//				endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
+//					before->pieces[ROOKS][player]) != POPCNT(now->pieces[ROOKS][player])) { /* Pawn promoted to rook */
+//				endsqi = FSB(now->pieces[ROOKS][player] & ~(before->pieces[ROOKS][player])) - 1;
 //				notation[2] = getfile(endsqi);
 //				notation[3] = getrank(endsqi);
 //				notation[4] = 'r';
 //			} else if (POPCNT(
-//					before->bishops[player]) != POPCNT(now->bishops[player])) { /* Pawn promoted to bishop */
-//				endsqi = FSB(now->bishops[player] & ~(before->bishops[player]))
+//					before->pieces[BISHOPS][player]) != POPCNT(now->pieces[BISHOPS][player])) { /* Pawn promoted to bishop */
+//				endsqi = FSB(now->pieces[BISHOPS][player] & ~(before->pieces[BISHOPS][player]))
 //						- 1;
 //				notation[2] = getfile(endsqi);
 //				notation[3] = getrank(endsqi);
 //				notation[4] = 'b';
 //			} else if (POPCNT(
-//					before->knights[player]) != POPCNT(now->knights[player])) { /* Pawn promoted to knight */
-//				endsqi = FSB(now->knights[player] & ~(before->knights[player]))
+//					before->pieces[KNIGHTS][player]) != POPCNT(now->pieces[KNIGHTS][player])) { /* Pawn promoted to knight */
+//				endsqi = FSB(now->pieces[KNIGHTS][player] & ~(before->pieces[KNIGHTS][player]))
 //						- 1;
 //				notation[2] = getfile(endsqi);
 //				notation[3] = getrank(endsqi);
 //				notation[4] = 'n';
 //			}
 //		}
-//	} else if (before->queens[player] != now->queens[player]) { /* A queen moved */
-//		startsqi = FSB(before->queens[player] & ~(now->queens[player])) - 1;
-//		endsqi = FSB(now->queens[player] & ~(before->queens[player])) - 1;
+//	} else if (before->pieces[QUEENS][player] != now->pieces[QUEENS][player]) { /* A queen moved */
+//		startsqi = FSB(before->pieces[QUEENS][player] & ~(now->pieces[QUEENS][player])) - 1;
+//		endsqi = FSB(now->pieces[QUEENS][player] & ~(before->pieces[QUEENS][player])) - 1;
 //		notation[0] = getfile(startsqi);
 //		notation[1] = getrank(startsqi);
 //		notation[2] = getfile(endsqi);
 //		notation[3] = getrank(endsqi);
-//	} else if (before->rooks[player] != now->rooks[player]) { /* A rook moved */
-//		startsqi = FSB(before->rooks[player] & ~(now->rooks[player])) - 1;
-//		endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
+//	} else if (before->pieces[ROOKS][player] != now->pieces[ROOKS][player]) { /* A rook moved */
+//		startsqi = FSB(before->pieces[ROOKS][player] & ~(now->pieces[ROOKS][player])) - 1;
+//		endsqi = FSB(now->pieces[ROOKS][player] & ~(before->pieces[ROOKS][player])) - 1;
 //		notation[0] = getfile(startsqi);
 //		notation[1] = getrank(startsqi);
 //		notation[2] = getfile(endsqi);
 //		notation[3] = getrank(endsqi);
-//	} else if (before->bishops[player] != now->bishops[player]) { /* A bishop moved */
-//		startsqi = FSB(before->bishops[player] & ~(now->bishops[player])) - 1;
-//		endsqi = FSB(now->bishops[player] & ~(before->bishops[player])) - 1;
+//	} else if (before->pieces[BISHOPS][player] != now->pieces[BISHOPS][player]) { /* A bishop moved */
+//		startsqi = FSB(before->pieces[BISHOPS][player] & ~(now->pieces[BISHOPS][player])) - 1;
+//		endsqi = FSB(now->pieces[BISHOPS][player] & ~(before->pieces[BISHOPS][player])) - 1;
 //		notation[0] = getfile(startsqi);
 //		notation[1] = getrank(startsqi);
 //		notation[2] = getfile(endsqi);
 //		notation[3] = getrank(endsqi);
-//	} else if (before->knights[player] != now->knights[player]) { /* A knight moved */
-//		startsqi = FSB(before->knights[player] & ~(now->knights[player])) - 1;
-//		endsqi = FSB(now->knights[player] & ~(before->knights[player])) - 1;
+//	} else if (before->pieces[KNIGHTS][player] != now->pieces[KNIGHTS][player]) { /* A knight moved */
+//		startsqi = FSB(before->pieces[KNIGHTS][player] & ~(now->pieces[KNIGHTS][player])) - 1;
+//		endsqi = FSB(now->pieces[KNIGHTS][player] & ~(before->pieces[KNIGHTS][player])) - 1;
 //		notation[0] = getfile(startsqi);
 //		notation[1] = getrank(startsqi);
 //		notation[2] = getfile(endsqi);
@@ -731,7 +727,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////	int i = 0, tmp, movcount, player, playeropp, sign, value;
 ////	chessposition movlist[200];
 ////
-////	player = position->states.tomove;
+////	player = position->states.toMove;
 ////	playeropp = (player + 1) % 2;
 ////	sign = (player == WHITE) ? 1 : -1;
 ////
@@ -741,7 +737,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////
 ////	movcount = generatemoves(*position, movlist);
 ////	if (movcount == 0) { // Checkmate or stalemate detected
-////		if ((position->king[player] & getattsquares(playeropp, *position)) == 0)
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position)) == 0)
 ////			return 0;
 ////		else
 ////			return -sign * CHECKMATE;
@@ -772,7 +768,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////	int i = 0, tmp, movcount, player, playeropp, sign, value = alpha;
 ////	chessposition movlist[200];
 ////
-////	player = position->states.tomove;
+////	player = position->states.toMove;
 ////	playeropp = (player + 1) % 2;
 ////	sign = (player == WHITE) ? 1 : -1;
 ////
@@ -782,7 +778,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////
 ////	movcount = generatemoves(*position, movlist);
 ////	if (movcount == 0) { // Checkmate or stalemate detected
-////		if ((position->king[player] & getattsquares(playeropp, *position)) == 0)
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position)) == 0)
 ////			return 0;
 ////		else
 ////			return -CHECKMATE;
@@ -806,7 +802,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////	struct bestmov tmp;
 ////	struct bestmov ret = { .eval = alpha, .i = 0 };
 ////
-////	player = position->states.tomove;
+////	player = position->states.toMove;
 ////	playeropp = (player + 1) % 2;
 ////	sign = (player == WHITE) ? 1 : -1;
 ////
@@ -819,7 +815,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////
 ////	movcount = generatemoves(*position, movlist);
 ////	if (movcount == 0) { // Checkmate or stalemate detected
-////		if ((position->king[player] & getattsquares(playeropp, *position))
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position))
 ////				== 0) {
 ////			ret.eval = 0;
 ////			ret.i = 0;
@@ -857,13 +853,13 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////	if (depth == 0)
 ////		return staticeval(*position);
 ////
-////	player = position->states.tomove;
+////	player = position->states.toMove;
 ////	playeropp = (player + 1) % 2;
 ////	sign = (player == WHITE) ? -1 : 1;
 ////	movcount = generatemoves(*position, movlist);
 ////
 ////	if (movcount == 0) { /* Checkmate or stalemate detected */
-////		if ((position->king[player] & getattsquares(playeropp, *position)) == 0)
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position)) == 0)
 ////			return 0;
 ////		else
 ////			return sign * CHECKMATE;
@@ -908,13 +904,13 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////		return ret;
 ////	}
 ////
-////	player = position->states.tomove;
+////	player = position->states.toMove;
 ////	playeropp = (player + 1) % 2;
 ////	sign = (player == WHITE) ? -1 : 1;
 ////	movcount = generatemoves(*position, movlist);
 ////
 ////	if (movcount == 0) { /* Checkmate or stalemate detected */
-////		if ((position->king[player] & getattsquares(playeropp, *position))
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position))
 ////				== 0) {
 ////			ret.eval = 0;
 ////			ret.i = -1;
@@ -951,7 +947,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////int negamax(chessposition *position, int depth) {
 ////	int value = -INF;
 ////	int i, tmp;
-////	const int player = position->states.tomove;
+////	const int player = position->states.toMove;
 ////	const int playeropp = (player + 1) % 2;
 ////	const int sign = (player == WHITE) ? 1 : -1;
 ////	int movcount;
@@ -963,7 +959,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////
 ////	movcount = generatemoves(*position, movlist);
 ////	if (movcount == 0) { /* Checkmate or stalemate detected */
-////		if ((position->king[player] & getattsquares(playeropp, *position)) == 0)
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position)) == 0)
 ////			return 0;
 ////		else
 ////			return -CHECKMATE;
@@ -978,7 +974,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////
 ////struct bestmov negamax_bestmov(chessposition *position, int depth) {
 ////	int i, movcount;
-////	const int player = position->states.tomove;
+////	const int player = position->states.toMove;
 ////	const int playeropp = (player + 1) % 2;
 ////	const int sign = (player == WHITE) ? 1 : -1;
 ////	chessposition movlist[200];
@@ -993,7 +989,7 @@ pv minimaxinfo(chessposition *position, int depth, int level) {
 ////
 ////	movcount = generatemoves(*position, movlist);
 ////	if (movcount == 0) { /* Checkmate or stalemate detected */
-////		if ((position->king[player] & getattsquares(playeropp, *position))
+////		if ((position->pieces[KING][player] & getattsquares(playeropp, *position))
 ////				== 0) {
 ////			ret.eval = 0;
 ////			ret.i = -1;

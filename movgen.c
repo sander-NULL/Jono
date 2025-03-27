@@ -93,8 +93,7 @@ int initmagicbishoptbls() { /* Returns 0 if malloc() was okay, 1 else */
 	for (sqi = 0; sqi < 64; sqi++) {
 		max = 0;
 		for (i = 0; i < bishopocc[sqi].size; i++) { /* Get table size */
-			j = bishopocc[sqi].occ[i] * bishopmagic[sqi].number
-					>> bishopmagic[sqi].shift;
+			j = bishopocc[sqi].occ[i] * bishopmagic[sqi].number >> bishopmagic[sqi].shift;
 			max = MAX(max, j);
 		}
 
@@ -103,8 +102,7 @@ int initmagicbishoptbls() { /* Returns 0 if malloc() was okay, 1 else */
 			return EXIT_FAILURE;
 
 		for (i = 0; i < bishopocc[sqi].size; i++) { /* Fill table */
-			j = (bishopocc[sqi].occ[i] * bishopmagic[sqi].number)
-					>> bishopmagic[sqi].shift;
+			j = (bishopocc[sqi].occ[i] * bishopmagic[sqi].number) >> bishopmagic[sqi].shift;
 			bishopattset[sqi][j] = getbishopattset(bishopocc[sqi].occ[i], sqi);
 		}
 	}
@@ -118,8 +116,7 @@ int initmagicrooktbls() { /* Returns 0 if malloc() was okay, 1 else */
 	for (sqi = 0; sqi < 64; sqi++) {
 		max = 0;
 		for (i = 0; i < rookocc[sqi].size; i++) { /* Get table size */
-			j = rookocc[sqi].occ[i] * rookmagic[sqi].number
-					>> rookmagic[sqi].shift;
+			j = rookocc[sqi].occ[i] * rookmagic[sqi].number >> rookmagic[sqi].shift;
 			max = MAX(max, j);
 		}
 
@@ -128,8 +125,7 @@ int initmagicrooktbls() { /* Returns 0 if malloc() was okay, 1 else */
 			return EXIT_FAILURE;
 
 		for (i = 0; i < rookocc[sqi].size; i++) { /* Fill table */
-			j = (rookocc[sqi].occ[i] * rookmagic[sqi].number)
-					>> rookmagic[sqi].shift;
+			j = (rookocc[sqi].occ[i] * rookmagic[sqi].number) >> rookmagic[sqi].shift;
 			rookattset[sqi][j] = getrookattset(rookocc[sqi].occ[i], sqi);
 		}
 	}
@@ -150,16 +146,14 @@ int init(void) {
 	initpawnjumps();
 	initpawnattacks();
 	initepstartsq();
-	if (initmagicbishoptbls() == EXIT_FAILURE
-			|| initmagicrooktbls() == EXIT_FAILURE)
+	if (initmagicbishoptbls() == EXIT_FAILURE || initmagicrooktbls() == EXIT_FAILURE)
 		return EXIT_FAILURE;
 	return EXIT_SUCCESS;
 }
 
 bitboard getpieces(int player, chessposition *position) {
-	return position->king[player] | position->queens[player]
-			| position->rooks[player] | position->bishops[player]
-			| position->knights[player] | position->pawns[player];
+	return position->pieces[KING][player] | position->pieces[QUEENS][player] | position->pieces[ROOKS][player]
+			| position->pieces[BISHOPS][player] | position->pieces[KNIGHTS][player] | position->pieces[PAWNS][player];
 }
 bitboard getallpieces(chessposition *position) {
 	return getpieces(WHITE, position) | getpieces(BLACK, position);
@@ -171,99 +165,91 @@ void initattsets(chessposition *position) { /* Initialize attack sets */
 	bitboard tmp, occ;
 
 	for (i = 0; i < 64; i++)
-		position->attackset[i] = 0; /* Clear all attack sets */
+		position->attackSet[i] = 0; /* Clear all attack sets */
 
-	i = FSB(position->king[WHITE]) - 1;
-	position->attackset[i] = kingmoves[i];
+	i = FSB(position->pieces[KING][WHITE]) - 1;
+	position->attackSet[i] = kingmoves[i];
 
-	i = FSB(position->king[BLACK]) - 1;
-	position->attackset[i] = kingmoves[i];
+	i = FSB(position->pieces[KING][BLACK]) - 1;
+	position->attackSet[i] = kingmoves[i];
 
-	tmp = position->knights[WHITE];
+	tmp = position->pieces[KNIGHTS][WHITE];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
-		position->attackset[i] = knightmoves[i];
+		position->attackSet[i] = knightmoves[i];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->knights[BLACK];
+	tmp = position->pieces[KNIGHTS][BLACK];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
-		position->attackset[i] = knightmoves[i];
+		position->attackSet[i] = knightmoves[i];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->pawns[WHITE];
+	tmp = position->pieces[PAWNS][WHITE];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
-		position->attackset[i] = pawnattacks[WHITE][PAWNINDEX(i)];
+		position->attackSet[i] = pawnattacks[WHITE][PAWNINDEX(i)];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->pawns[BLACK];
+	tmp = position->pieces[PAWNS][BLACK];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
-		position->attackset[i] = pawnattacks[BLACK][PAWNINDEX(i)];
+		position->attackSet[i] = pawnattacks[BLACK][PAWNINDEX(i)];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->bishops[WHITE];
+	tmp = position->pieces[BISHOPS][WHITE];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
 		occ = getallpieces(position) & bishopmask[i];
-		position->attackset[i] = bishopattset[i][(occ * bishopmagic[i].number)
-				>> bishopmagic[i].shift];
+		position->attackSet[i] = bishopattset[i][(occ * bishopmagic[i].number) >> bishopmagic[i].shift];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->bishops[BLACK];
+	tmp = position->pieces[BISHOPS][BLACK];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
 		occ = getallpieces(position) & bishopmask[i];
-		position->attackset[i] = bishopattset[i][(occ * bishopmagic[i].number)
-				>> bishopmagic[i].shift];
+		position->attackSet[i] = bishopattset[i][(occ * bishopmagic[i].number) >> bishopmagic[i].shift];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->rooks[WHITE];
+	tmp = position->pieces[ROOKS][WHITE];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
 		occ = getallpieces(position) & rookmask[i];
-		position->attackset[i] = rookattset[i][(occ * rookmagic[i].number)
-				>> rookmagic[i].shift];
+		position->attackSet[i] = rookattset[i][(occ * rookmagic[i].number) >> rookmagic[i].shift];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->rooks[BLACK];
+	tmp = position->pieces[ROOKS][BLACK];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
 		occ = getallpieces(position) & rookmask[i];
-		position->attackset[i] = rookattset[i][(occ * rookmagic[i].number)
-				>> rookmagic[i].shift];
+		position->attackSet[i] = rookattset[i][(occ * rookmagic[i].number) >> rookmagic[i].shift];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->queens[WHITE];
+	tmp = position->pieces[QUEENS][WHITE];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
 		occ = getallpieces(position) & bishopmask[i];
-		position->attackset[i] = bishopattset[i][(occ * bishopmagic[i].number)
-				>> bishopmagic[i].shift];
+		position->attackSet[i] = bishopattset[i][(occ * bishopmagic[i].number) >> bishopmagic[i].shift];
 		occ = getallpieces(position) & rookmask[i];
-		position->attackset[i] |= rookattset[i][(occ * rookmagic[i].number)
-				>> rookmagic[i].shift];
+		position->attackSet[i] |= rookattset[i][(occ * rookmagic[i].number) >> rookmagic[i].shift];
 		CB(tmp, i + 1);
 	}
 
-	tmp = position->queens[BLACK];
+	tmp = position->pieces[QUEENS][BLACK];
 	while (FSB(tmp) != 0) {
 		i = FSB(tmp) - 1;
 		occ = getallpieces(position) & bishopmask[i];
-		position->attackset[i] = bishopattset[i][(occ * bishopmagic[i].number)
-				>> bishopmagic[i].shift];
+		position->attackSet[i] = bishopattset[i][(occ * bishopmagic[i].number) >> bishopmagic[i].shift];
 		occ = getallpieces(position) & rookmask[i];
-		position->attackset[i] |= rookattset[i][(occ * rookmagic[i].number)
-				>> rookmagic[i].shift];
+		position->attackSet[i] |= rookattset[i][(occ * rookmagic[i].number) >> rookmagic[i].shift];
 		CB(tmp, i + 1);
 	}
 }
@@ -274,14 +260,10 @@ void initattsets(chessposition *position) { /* Initialize attack sets */
 //
 //}
 
-
-
 /* Updates the the attack sets of the sliding pieces assuming a piece moved from startsqi to endsqi and NO piece was captured */
 /* It might also work with a capture but is not as efficient since no attack sets on the rays of the endsqi need to be updated */
-void updslidpieces(chessposition *position, int startsqi, int endsqi,
-		int player, int playeropp) {
-	bitboard allpieces, rookocc, rookoccstart, rookoccend, bishopocc,
-			bishopoccstart, bishopoccend, updpieces;
+void updslidpieces(chessposition *position, int startsqi, int endsqi, int player, int playeropp) {
+	bitboard allpieces, rookocc, rookoccstart, rookoccend, bishopocc, bishopoccstart, bishopoccend, updpieces;
 	int sqi;
 
 	allpieces = getallpieces(position);
@@ -291,87 +273,69 @@ void updslidpieces(chessposition *position, int startsqi, int endsqi,
 	bishopoccend = allpieces & bishopmask[endsqi]; /* Get bishop occupancies of endsqi */
 
 	/* Find rooks on rook rays of startsqi */
-	updpieces = (position->rooks[player] | position->rooks[playeropp])
-			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number)
-					>> rookmagic[startsqi].shift];
+	updpieces = (position->pieces[ROOKS][player] | position->pieces[ROOKS][playeropp])
+			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number) >> rookmagic[startsqi].shift];
 	/* Add rooks on rook rays of endsqi */
-	updpieces |= (position->rooks[player] | position->rooks[playeropp])
-			& rookattset[endsqi][(rookoccend * rookmagic[endsqi].number)
-					>> rookmagic[endsqi].shift];
+	updpieces |= (position->pieces[ROOKS][player] | position->pieces[ROOKS][playeropp])
+			& rookattset[endsqi][(rookoccend * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
 	/* Update attack sets of rooks on rook rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		rookocc = allpieces & rookmask[sqi];
-		position->attackset[sqi] = rookattset[sqi][(rookocc
-				* rookmagic[sqi].number) >> rookmagic[sqi].shift];
+		position->attackSet[sqi] = rookattset[sqi][(rookocc * rookmagic[sqi].number) >> rookmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 
 	/* Find queens on rook rays of startsqi */
-	updpieces = (position->queens[player] | position->queens[playeropp])
-			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number)
-					>> rookmagic[startsqi].shift];
+	updpieces = (position->pieces[QUEENS][player] | position->pieces[QUEENS][playeropp])
+			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number) >> rookmagic[startsqi].shift];
 	/* Add queens on rook rays of endsqi */
-	updpieces |= (position->queens[player] | position->queens[playeropp])
-			& rookattset[endsqi][(rookoccend * rookmagic[endsqi].number)
-					>> rookmagic[endsqi].shift];
+	updpieces |= (position->pieces[QUEENS][player] | position->pieces[QUEENS][playeropp])
+			& rookattset[endsqi][(rookoccend * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
 	/* Update attack sets of queens on rook rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		rookocc = allpieces & rookmask[sqi];
 		bishopocc = allpieces & bishopmask[sqi];
-		position->attackset[sqi] = rookattset[sqi][(rookocc
-				* rookmagic[sqi].number) >> rookmagic[sqi].shift];
-		position->attackset[sqi] |= bishopattset[sqi][(bishopocc
-				* bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
+		position->attackSet[sqi] = rookattset[sqi][(rookocc * rookmagic[sqi].number) >> rookmagic[sqi].shift];
+		position->attackSet[sqi] |= bishopattset[sqi][(bishopocc * bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 
 	/* Find bishops on bishop rays of startsqi */
-	updpieces = (position->bishops[player] | position->bishops[playeropp])
-			& bishopattset[startsqi][(bishopoccstart
-					* bishopmagic[startsqi].number)
-					>> bishopmagic[startsqi].shift];
+	updpieces = (position->pieces[BISHOPS][player] | position->pieces[BISHOPS][playeropp])
+			& bishopattset[startsqi][(bishopoccstart * bishopmagic[startsqi].number) >> bishopmagic[startsqi].shift];
 	/* Add bishops on bishop rays of endsqi */
-	updpieces |= (position->bishops[player] | position->bishops[playeropp])
-			& bishopattset[endsqi][(bishopoccend * bishopmagic[endsqi].number)
-					>> bishopmagic[endsqi].shift];
+	updpieces |= (position->pieces[BISHOPS][player] | position->pieces[BISHOPS][playeropp])
+			& bishopattset[endsqi][(bishopoccend * bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
 	/* Update attack sets of bishops on bishop rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		bishopocc = allpieces & bishopmask[sqi];
-		position->attackset[sqi] = bishopattset[sqi][(bishopocc
-				* bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
+		position->attackSet[sqi] = bishopattset[sqi][(bishopocc * bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 
 	/* Find queens on bishop rays of startsqi */
-	updpieces = (position->queens[player] | position->queens[playeropp])
-			& bishopattset[startsqi][(bishopoccstart
-					* bishopmagic[startsqi].number)
-					>> bishopmagic[startsqi].shift];
+	updpieces = (position->pieces[QUEENS][player] | position->pieces[QUEENS][playeropp])
+			& bishopattset[startsqi][(bishopoccstart * bishopmagic[startsqi].number) >> bishopmagic[startsqi].shift];
 	/* Add queens on bishop rays of endsqi */
-	updpieces |= (position->queens[player] | position->queens[playeropp])
-			& bishopattset[endsqi][(bishopoccend * bishopmagic[endsqi].number)
-					>> bishopmagic[endsqi].shift];
+	updpieces |= (position->pieces[QUEENS][player] | position->pieces[QUEENS][playeropp])
+			& bishopattset[endsqi][(bishopoccend * bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
 	/* Update attack sets of queens on bishop rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		rookocc = allpieces & rookmask[sqi];
 		bishopocc = allpieces & bishopmask[sqi];
-		position->attackset[sqi] = rookattset[sqi][(rookocc
-				* rookmagic[sqi].number) >> rookmagic[sqi].shift];
-		position->attackset[sqi] |= bishopattset[sqi][(bishopocc
-				* bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
+		position->attackSet[sqi] = rookattset[sqi][(rookocc * rookmagic[sqi].number) >> rookmagic[sqi].shift];
+		position->attackSet[sqi] |= bishopattset[sqi][(bishopocc * bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 }
 
 /* Updates the the attack sets of the sliding pieces assuming a piece moved from startsqi to endsqi AND captured a piece there */
-void updslidpieces_capt(chessposition *position, int startsqi, int player,
-		int playeropp) {
-	bitboard allpieces, rookocc, rookoccstart, bishopocc, bishopoccstart,
-			updpieces;
+void updslidpieces_capt(chessposition *position, int startsqi, int player, int playeropp) {
+	bitboard allpieces, rookocc, rookoccstart, bishopocc, bishopoccstart, updpieces;
 	int sqi;
 
 	allpieces = getallpieces(position);
@@ -379,78 +343,65 @@ void updslidpieces_capt(chessposition *position, int startsqi, int player,
 	bishopoccstart = allpieces & bishopmask[startsqi]; /* Get bishop occupancies of startsqi */
 
 	/* Find rooks on rook rays of startsqi */
-	updpieces = (position->rooks[player] | position->rooks[playeropp])
-			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number)
-					>> rookmagic[startsqi].shift];
+	updpieces = (position->pieces[ROOKS][player] | position->pieces[ROOKS][playeropp])
+			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number) >> rookmagic[startsqi].shift];
 	/* Update attack sets of rooks on rook rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		rookocc = allpieces & rookmask[sqi];
-		position->attackset[sqi] = rookattset[sqi][(rookocc
-				* rookmagic[sqi].number) >> rookmagic[sqi].shift];
+		position->attackSet[sqi] = rookattset[sqi][(rookocc * rookmagic[sqi].number) >> rookmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 
 	/* Find queens on rook rays of startsqi */
-	updpieces = (position->queens[player] | position->queens[playeropp])
-			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number)
-					>> rookmagic[startsqi].shift];
+	updpieces = (position->pieces[QUEENS][player] | position->pieces[QUEENS][playeropp])
+			& rookattset[startsqi][(rookoccstart * rookmagic[startsqi].number) >> rookmagic[startsqi].shift];
 	/* Update attack sets of queens on rook rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		rookocc = allpieces & rookmask[sqi];
 		bishopocc = allpieces & bishopmask[sqi];
-		position->attackset[sqi] = rookattset[sqi][(rookocc
-				* rookmagic[sqi].number) >> rookmagic[sqi].shift];
-		position->attackset[sqi] |= bishopattset[sqi][(bishopocc
-				* bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
+		position->attackSet[sqi] = rookattset[sqi][(rookocc * rookmagic[sqi].number) >> rookmagic[sqi].shift];
+		position->attackSet[sqi] |= bishopattset[sqi][(bishopocc * bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 
 	/* Find bishops on bishop rays of startsqi */
-	updpieces = (position->bishops[player] | position->bishops[playeropp])
-			& bishopattset[startsqi][(bishopoccstart
-					* bishopmagic[startsqi].number)
-					>> bishopmagic[startsqi].shift];
+	updpieces = (position->pieces[BISHOPS][player] | position->pieces[BISHOPS][playeropp])
+			& bishopattset[startsqi][(bishopoccstart * bishopmagic[startsqi].number) >> bishopmagic[startsqi].shift];
 	/* Update attack sets of bishops on bishop rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		bishopocc = allpieces & bishopmask[sqi];
-		position->attackset[sqi] = bishopattset[sqi][(bishopocc
-				* bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
+		position->attackSet[sqi] = bishopattset[sqi][(bishopocc * bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 
 	/* Find queens on bishop rays of startsqi */
-	updpieces = (position->queens[player] | position->queens[playeropp])
-			& bishopattset[startsqi][(bishopoccstart
-					* bishopmagic[startsqi].number)
-					>> bishopmagic[startsqi].shift];
+	updpieces = (position->pieces[QUEENS][player] | position->pieces[QUEENS][playeropp])
+			& bishopattset[startsqi][(bishopoccstart * bishopmagic[startsqi].number) >> bishopmagic[startsqi].shift];
 	/* Update attack sets of queens on bishop rays of startsqi and endsqi */
 	while (updpieces != 0) {
 		sqi = FSB(updpieces) - 1;
 		rookocc = allpieces & rookmask[sqi];
 		bishopocc = allpieces & bishopmask[sqi];
-		position->attackset[sqi] = rookattset[sqi][(rookocc
-				* rookmagic[sqi].number) >> rookmagic[sqi].shift];
-		position->attackset[sqi] |= bishopattset[sqi][(bishopocc
-				* bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
+		position->attackSet[sqi] = rookattset[sqi][(rookocc * rookmagic[sqi].number) >> rookmagic[sqi].shift];
+		position->attackSet[sqi] |= bishopattset[sqi][(bishopocc * bishopmagic[sqi].number) >> bishopmagic[sqi].shift];
 		CB(updpieces, sqi + 1);
 	}
 }
 
 bitboard getattsquares(int player, chessposition position) { /* Get attacked squares by player = WHITE or player = BLACK */
-	/* Simply reads them of the position.attackset array */
+	/* Simply reads them of the position.attackSet array */
 
 	bitboard team; /* Encodes where all pieces are */
 	bitboard attsquares = 0; /* Clear attacked squares */
 
-	team = position.king[player] | position.queens[player]
-			| position.rooks[player] | position.bishops[player]
-			| position.knights[player] | position.pawns[player];
+	team = position.pieces[KING][player] | position.pieces[QUEENS][player] | position.pieces[ROOKS][player]
+			| position.pieces[BISHOPS][player] | position.pieces[KNIGHTS][player] | position.pieces[PAWNS][player];
 
 	while (team != 0) { /* As long as there are pieces to consider */
-		attsquares |= position.attackset[FSB(team) - 1]; /* Add attacked squares by that piece */
+		attsquares |= position.attackSet[FSB(team) - 1]; /* Add attacked squares by that piece */
 		CB(team, FSB(team)); /* Clear that piece */
 	}
 
@@ -460,33 +411,33 @@ bitboard getattsquares(int player, chessposition position) { /* Get attacked squ
 void clearpos(chessposition *position) { /* Clear the board */
 
 	int i;
-	position->king[WHITE] = 0;
-	position->king[BLACK] = 0;
-	position->queens[WHITE] = 0;
-	position->queens[BLACK] = 0;
-	position->rooks[WHITE] = 0;
-	position->rooks[BLACK] = 0;
-	position->bishops[WHITE] = 0;
-	position->bishops[BLACK] = 0;
-	position->knights[WHITE] = 0;
-	position->knights[BLACK] = 0;
-	position->pawns[WHITE] = 0;
-	position->pawns[BLACK] = 0;
-	position->states.kingcastle[WHITE] = 0;
-	position->states.kingcastle[BLACK] = 0;
-	position->states.queencastle[WHITE] = 0;
-	position->states.queencastle[BLACK] = 0;
-	position->states.enpassant = -1;
+	position->pieces[KING][WHITE] = 0;
+	position->pieces[KING][BLACK] = 0;
+	position->pieces[QUEENS][WHITE] = 0;
+	position->pieces[QUEENS][BLACK] = 0;
+	position->pieces[ROOKS][WHITE] = 0;
+	position->pieces[ROOKS][BLACK] = 0;
+	position->pieces[BISHOPS][WHITE] = 0;
+	position->pieces[BISHOPS][BLACK] = 0;
+	position->pieces[KNIGHTS][WHITE] = 0;
+	position->pieces[KNIGHTS][BLACK] = 0;
+	position->pieces[PAWNS][WHITE] = 0;
+	position->pieces[PAWNS][BLACK] = 0;
+	position->states.kingCastle[WHITE] = 0;
+	position->states.kingCastle[BLACK] = 0;
+	position->states.queenCastle[WHITE] = 0;
+	position->states.queenCastle[BLACK] = 0;
+	position->states.enPassant = -1;
 	position->states.plies = 0;
 	for (i = 0; i < 64; i++)
-		position->attackset[i] = 0;
+		position->attackSet[i] = 0;
 }
 
 int importpos(char *fen, chessposition *position) { /* Set up internal position from FEN string */
 
-	char *board, *tomove, *castling, *enpassant, *halfmoves, *moves;	// gcc throws warning that *moves is set but not used
-																		// this is okay since there is a field for the move number
-																		// in FEN which might be used later
+    char *board, *toMove, *castling, *enPassant, *halfmoves, *moves;	// gcc throws warning that *moves is set but not used
+                                                                        // this is okay since there is a field for the move number
+                                                                        // in FEN which might be used later
 	char *tmp, *ptr;
 	int i = 7, j = 0, n = 0;
 
@@ -495,9 +446,9 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 	strncpy(tmp, fen, strlen(fen));
 
 	board = strsep(&tmp, " ");
-	tomove = strsep(&tmp, " ");
+	toMove = strsep(&tmp, " ");
 	castling = strsep(&tmp, " ");
-	enpassant = strsep(&tmp, " ");
+	enPassant = strsep(&tmp, " ");
 	halfmoves = strsep(&tmp, " ");
 	moves = strsep(&tmp, " ");
 
@@ -506,51 +457,51 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 	while (board[n] != '\0') { /* Set up the board */
 		switch (board[n]) {
 		case 'B':
-			position->bishops[WHITE] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[BISHOPS][WHITE] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'b':
-			position->bishops[BLACK] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[BISHOPS][BLACK] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'K':
-			position->king[WHITE] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[KING][WHITE] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'k':
-			position->king[BLACK] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[KING][BLACK] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'N':
-			position->knights[WHITE] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[KNIGHTS][WHITE] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'n':
-			position->knights[BLACK] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[KNIGHTS][BLACK] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'P':
-			position->pawns[WHITE] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[PAWNS][WHITE] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'p':
-			position->pawns[BLACK] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[PAWNS][BLACK] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'Q':
-			position->queens[WHITE] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[QUEENS][WHITE] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'q':
-			position->queens[BLACK] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[QUEENS][BLACK] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'R':
-			position->rooks[WHITE] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[ROOKS][WHITE] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case 'r':
-			position->rooks[BLACK] |= UINT64_C(1) << (i * 8 + j);
+			position->pieces[ROOKS][BLACK] |= UINT64_C(1) << (i * 8 + j);
 			j++;
 			break;
 		case '1':
@@ -581,7 +532,8 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 			if (j == 8) { /* Have 8 squares been assigned? */
 				i--; /* Rank finished, go on to next rank */
 				j = 0; /* Set j to A file */
-			} else {
+			}
+			else {
 				clearpos(position);
 				return -2; /* Not enough squares in current rank assigned */
 			}
@@ -593,12 +545,12 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 		n++;
 	}
 
-	switch (*tomove) {
+	switch (*toMove) {
 	case 'b':
-		position->states.tomove = BLACK;
+		position->states.toMove = BLACK;
 		break;
 	case 'w':
-		position->states.tomove = WHITE;
+		position->states.toMove = WHITE;
 		break;
 	default:
 		clearpos(position); /* Erroneous FEN string, unknown character */
@@ -609,16 +561,16 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 	while (castling[n] != '\0') {
 		switch (castling[n]) {
 		case 'K':
-			position->states.kingcastle[WHITE] = 1;
+			position->states.kingCastle[WHITE] = 1;
 			break;
 		case 'k':
-			position->states.kingcastle[BLACK] = 1;
+			position->states.kingCastle[BLACK] = 1;
 			break;
 		case 'Q':
-			position->states.queencastle[WHITE] = 1;
+			position->states.queenCastle[WHITE] = 1;
 			break;
 		case 'q':
-			position->states.queencastle[BLACK] = 1;
+			position->states.queenCastle[BLACK] = 1;
 			break;
 		case '-':
 			break;
@@ -629,33 +581,33 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 		n++;
 	}
 
-	switch (*enpassant) {
+	switch (*enPassant) {
 	case 'a':
-		position->states.enpassant = 0;
+		position->states.enPassant = 0;
 		break;
 	case 'b':
-		position->states.enpassant = 1;
+		position->states.enPassant = 1;
 		break;
 	case 'c':
-		position->states.enpassant = 2;
+		position->states.enPassant = 2;
 		break;
 	case 'd':
-		position->states.enpassant = 3;
+		position->states.enPassant = 3;
 		break;
 	case 'e':
-		position->states.enpassant = 4;
+		position->states.enPassant = 4;
 		break;
 	case 'f':
-		position->states.enpassant = 5;
+		position->states.enPassant = 5;
 		break;
 	case 'g':
-		position->states.enpassant = 6;
+		position->states.enPassant = 6;
 		break;
 	case 'h':
-		position->states.enpassant = 7;
+		position->states.enPassant = 7;
 		break;
 	case '-':
-		position->states.enpassant = -1;
+		position->states.enPassant = -1;
 		break;
 	default:
 		clearpos(position); /* Erroneous FEN string, unknown character */
@@ -669,17 +621,17 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 	initattsets(position);
 
 	/* Catch erroneous positions */
-	i = position->states.tomove;
-	if ((position->king[(i + 1) % 2] & getattsquares(i, *position)) != 0) {
+	i = position->states.toMove;
+	if ((position->pieces[KING][(i + 1) % 2] & getattsquares(i, *position)) != 0) {
 		clearpos(position);
 		return (-10) * (i + 1); /* Player who is not to move is in check */
 	}
 	for (i = WHITE; i <= BLACK; i++) {
-		if (POPCNT(position->king[i]) != 1) {
+		if (POPCNT(position->pieces[KING][i]) != 1) {
 			clearpos(position);
 			return (-10) * (i + 1) - 1; /* Wrong amount of kings */
 		}
-		if ((position->pawns[i] & (CHESSRANK(i, 0) | CHESSRANK(i, 7))) != 0) {
+		if ((position->pieces[PAWNS][i] & (CHESSRANK(i, 0) | CHESSRANK(i, 7))) != 0) {
 			clearpos(position);
 			return (-10) * (i + 1) - 2; /* Pawns on 1st or 8th rank */
 		}
@@ -690,165 +642,151 @@ int importpos(char *fen, chessposition *position) { /* Set up internal position 
 	return EXIT_SUCCESS;
 }
 
-int generatemoves(chessposition position, chessposition* loudMoves, chessposition* quietMoves, int* lenLoud, int* lenQuiet) {
-	/* Generates all legal moves in given position, stores captures and promotions in "loudMoves" and its length in lenLoud, */
-	/* the rest in "quietMoves" (its length in lenQuiet) and returns the sum of their lengths */
+int generatemoves(chessposition position, chessposition *moves) {
+	/* Generates all legal moves in given position, stores them in "moves" and returns their number */
 	/* When moving it does NOT CAPTURE A KING, opponent's king cannot be in check */
 
 	/* PERFORMANCE ISSUE: When king moves (castles), only attack sets of same color sliding pieces need to be updated? */
 	/*						Give only pointer to position? */
 
-	bitboard possible, forbidden, pieces, rookocc, bishopocc, allpieces, attackedPieces, attackedSquares;
+	bitboard possible, forbidden, pieces, rookocc, bishopocc, allpieces;
 	chessposition move = position;
 	int movecount = 0; /* Number of legal moves in given position */
 	int player, playeropp, sqi, startsqi, endsqi;
 
-	player = position.states.tomove;
+	player = position.states.toMove;
 	playeropp = (player + 1) % 2; /* The one not to move */
-
-	attackedSquares = getattsquares(player);
-
-	/* According to MVV/LVA the first potential victim is a queen */
-	attackedPieces = position.queens[playeropp] & attackedSquares;
-	while (FSB(attackedPieces) != 0) {	/* While there are attacked queens */
-
-	}
 
 	/* First generate moves for the king */
 	/* Calculate possible squares for the king */
-	forbidden = position.queens[player] | position.rooks[player]
-			| position.bishops[player] | position.knights[player]
-			| position.pawns[player] | getattsquares(playeropp, position);
+	forbidden = position.pieces[QUEENS][player] | position.pieces[ROOKS][player] | position.pieces[BISHOPS][player]
+			| position.pieces[KNIGHTS][player] | position.pieces[PAWNS][player] | getattsquares(playeropp, position);
 
-	startsqi = FSB(position.king[player]) - 1;
-	possible = kingmoves[startsqi] & ~forbidden
-			& getpieces(playeropp, &position); /* First consider the captures */
+	startsqi = FSB(position.pieces[KING][player]) - 1;
+	possible = kingmoves[startsqi] & ~forbidden & getpieces(playeropp, &position); /* First consider the captures */
 
 	while (possible != 0) { /* While there are pieces for the king to capture */
 		move = position;
 
 		/* +++ */
-		move.attackset[startsqi] = 0; /* Clear attack set of start square */
+		move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-		move.king[player] = 0; /* Remove king from the board */
+		move.pieces[KING][player] = 0; /* Remove king from the board */
 
 		/* +++ */
 		endsqi = FSB(possible) - 1;
 
-		SB(move.king[player], endsqi + 1); /* Set king's position to first possible */
+		SB(move.pieces[KING][player], endsqi + 1); /* Set king's position to first possible */
 
 		/* +++ */
-		move.attackset[endsqi] = kingmoves[endsqi]; /* Update attack set of end square */
+		move.attackSet[endsqi] = kingmoves[endsqi]; /* Update attack set of end square */
 
 		CB(possible, endsqi + 1); /* Clear that square from the possible ones */
-		move.queens[playeropp] &= ~move.king[player]; /* Capture the black piece (NO KING CAPTURE) */
-		move.rooks[playeropp] &= ~move.king[player];
-		move.bishops[playeropp] &= ~move.king[player];
-		move.knights[playeropp] &= ~move.king[player];
-		move.pawns[playeropp] &= ~move.king[player];
+		move.pieces[QUEENS][playeropp] &= ~move.pieces[KING][player]; /* Capture the black piece (NO KING CAPTURE) */
+		move.pieces[ROOKS][playeropp] &= ~move.pieces[KING][player];
+		move.pieces[BISHOPS][playeropp] &= ~move.pieces[KING][player];
+		move.pieces[KNIGHTS][playeropp] &= ~move.pieces[KING][player];
+		move.pieces[PAWNS][playeropp] &= ~move.pieces[KING][player];
 
 		/* +++ */
 		updslidpieces_capt(&move, startsqi, player, playeropp);
 
-		/* PERFORMANCE ISSUE: Not necessary to update ALL attacksets */
+		/* PERFORMANCE ISSUE: Not necessary to update ALL attackSets */
 		//initattsets(&move); /* Update the attack sets of each square */
 		/* MAYBE PERFORMANCE: Check if king is in check beforehand. Then the next check for check might be avoidable. */
 		/* Is the king now in check? */
-		if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-			move.states.kingcastle[player] = 0; /* Castling is no longer possible */
-			move.states.queencastle[player] = 0;
-			if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-				move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-			if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-				move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-			move.states.enpassant = -1; /* En passant is not possible */
+		if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+			move.states.kingCastle[player] = 0; /* Castling is no longer possible */
+			move.states.queenCastle[player] = 0;
+			if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+				move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+			if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+				move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+			move.states.enPassant = -1; /* En passant is not possible */
 			move.states.plies = 0; /* King just captured a piece */
-			move.states.tomove = playeropp; /* Now the opponent is to move */
-			quietMoves[movecount] = move;
+			move.states.toMove = playeropp; /* Now the opponent is to move */
+			moves[movecount] = move;
 			movecount++;
 		}
 	}
 
-	possible = kingmoves[FSB(position.king[player]) - 1] & ~forbidden
-			& ~getpieces(playeropp, &position); /* Consider now the non-captures */
+	possible = kingmoves[FSB(position.pieces[KING][player]) - 1] & ~forbidden & ~getpieces(playeropp, &position); /* Consider now the non-captures */
 
 	while (possible != 0) { /* While there are squares for the king to move to */
 		move = position;
 
 		/* +++ */
-		move.attackset[startsqi] = 0; /* Clear attack set of start square */
+		move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-		move.king[player] = 0; /* Remove king from the board */
+		move.pieces[KING][player] = 0; /* Remove king from the board */
 
 		/* +++ */
 		endsqi = FSB(possible) - 1;
 
-		SB(move.king[player], endsqi + 1); /* Set king's position to first possible */
+		SB(move.pieces[KING][player], endsqi + 1); /* Set king's position to first possible */
 
 		/* +++ */
-		move.attackset[endsqi] = kingmoves[endsqi]; /* Update attack set of end square */
+		move.attackSet[endsqi] = kingmoves[endsqi]; /* Update attack set of end square */
 
 		CB(possible, endsqi + 1); /* Clear that square from the possible ones */
 
 		/* +++ */
 		updslidpieces(&move, startsqi, endsqi, player, playeropp);
 
-		/* PERFORMANCE ISSUE: Not necessary to update ALL attacksets */
+		/* PERFORMANCE ISSUE: Not necessary to update ALL attackSets */
 		//initattsets(&move); /* Update the attack sets of each square */
 		/* Is the king now in check? */
-		if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-			move.states.kingcastle[player] = 0; /* Castling is no longer possible */
-			move.states.queencastle[player] = 0;
-			move.states.enpassant = -1; /* En passant is not possible */
+		if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+			move.states.kingCastle[player] = 0; /* Castling is no longer possible */
+			move.states.queenCastle[player] = 0;
+			move.states.enPassant = -1; /* En passant is not possible */
 			move.states.plies++; /* King did not capture a piece */
-			move.states.tomove = playeropp; /* Now the opponent is to move */
-			quietMoves[movecount] = move;
+			move.states.toMove = playeropp; /* Now the opponent is to move */
+			moves[movecount] = move;
 			movecount++;
 		}
 	}
 
 	/* Now the queens */
-	pieces = position.queens[player];
+	pieces = position.pieces[QUEENS][player];
 	while (FSB(pieces) != 0) { /* While there are queens to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the queen is on */
 
 		/* Calculate possible squares for the queen on sqi */
-		forbidden = position.king[player] | position.queens[player]
-				| position.rooks[player] | position.bishops[player]
-				| position.knights[player] | position.pawns[player];
+		forbidden = position.pieces[KING][player] | position.pieces[QUEENS][player] | position.pieces[ROOKS][player]
+				| position.pieces[BISHOPS][player] | position.pieces[KNIGHTS][player] | position.pieces[PAWNS][player];
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& getpieces(playeropp, &position); /* First consider the captures */
+		possible = position.attackSet[startsqi] & ~forbidden & getpieces(playeropp, &position); /* First consider the captures */
 
 		while (possible != 0) { /* While there are pieces for the queen to capture */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.queens[player], startsqi + 1); /* Remove that queen from the board */
+			CB(move.pieces[QUEENS][player], startsqi + 1); /* Remove that queen from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.queens[player], endsqi + 1); /* Set queen's position to first possible */
+			SB(move.pieces[QUEENS][player], endsqi + 1); /* Set queen's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			rookocc = allpieces & rookmask[endsqi];
 			bishopocc = allpieces & bishopmask[endsqi];
-			move.attackset[endsqi] = rookattset[endsqi][(rookocc
-					* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
-			move.attackset[endsqi] |= bishopattset[endsqi][(bishopocc
-					* bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
+			move.attackSet[endsqi] =
+					rookattset[endsqi][(rookocc * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+			move.attackSet[endsqi] |= bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
+					>> bishopmagic[endsqi].shift];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
-			move.queens[playeropp] &= ~move.queens[player]; /* Capture the black piece (NO KING CAPTURE) */
-			move.rooks[playeropp] &= ~move.queens[player];
-			move.bishops[playeropp] &= ~move.queens[player];
-			move.knights[playeropp] &= ~move.queens[player];
-			move.pawns[playeropp] &= ~move.queens[player];
+			move.pieces[QUEENS][playeropp] &= ~move.pieces[QUEENS][player]; /* Capture the black piece (NO KING CAPTURE) */
+			move.pieces[ROOKS][playeropp] &= ~move.pieces[QUEENS][player];
+			move.pieces[BISHOPS][playeropp] &= ~move.pieces[QUEENS][player];
+			move.pieces[KNIGHTS][playeropp] &= ~move.pieces[QUEENS][player];
+			move.pieces[PAWNS][playeropp] &= ~move.pieces[QUEENS][player];
 
 			/* +++ */
 			updslidpieces_capt(&move, startsqi, player, playeropp);
@@ -856,44 +794,43 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-					move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-				if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-					move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+					move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+				if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+					move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Queen just captured a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& ~getpieces(playeropp, &position); /* Now consider the non-captures */
+		possible = position.attackSet[startsqi] & ~forbidden & ~getpieces(playeropp, &position); /* Now consider the non-captures */
 
 		while (possible != 0) { /* While there are squares for the queen to move to */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.queens[player], startsqi + 1); /* Remove that queen from the board */
+			CB(move.pieces[QUEENS][player], startsqi + 1); /* Remove that queen from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.queens[player], endsqi + 1); /* Set queen's position to first possible */
+			SB(move.pieces[QUEENS][player], endsqi + 1); /* Set queen's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			rookocc = allpieces & rookmask[endsqi];
 			bishopocc = allpieces & bishopmask[endsqi];
-			move.attackset[endsqi] = rookattset[endsqi][(rookocc
-					* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
-			move.attackset[endsqi] |= bishopattset[endsqi][(bishopocc
-					* bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
+			move.attackSet[endsqi] =
+					rookattset[endsqi][(rookocc * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+			move.attackSet[endsqi] |= bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
+					>> bishopmagic[endsqi].shift];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
 
@@ -903,11 +840,11 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Queen did not capture a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -915,43 +852,41 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 	}
 
 	/* Now the rooks */
-	pieces = position.rooks[player];
+	pieces = position.pieces[ROOKS][player];
 	while (FSB(pieces) != 0) { /* While there are rooks to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the rook is on */
 
 		/* Calculate possible squares for the rook on startsqi */
-		forbidden = position.king[player] | position.queens[player]
-				| position.rooks[player] | position.bishops[player]
-				| position.knights[player] | position.pawns[player];
+		forbidden = position.pieces[KING][player] | position.pieces[QUEENS][player] | position.pieces[ROOKS][player]
+				| position.pieces[BISHOPS][player] | position.pieces[KNIGHTS][player] | position.pieces[PAWNS][player];
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& getpieces(playeropp, &position); /* First consider the captures */
+		possible = position.attackSet[startsqi] & ~forbidden & getpieces(playeropp, &position); /* First consider the captures */
 
 		while (possible != 0) { /* While there are pieces for the rook to capture */
 			move = position; /* Set move to current position */
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.rooks[player], startsqi + 1); /* Remove that rook from the board */
+			CB(move.pieces[ROOKS][player], startsqi + 1); /* Remove that rook from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.rooks[player], endsqi + 1); /* Set rook's position to first possible */
+			SB(move.pieces[ROOKS][player], endsqi + 1); /* Set rook's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			rookocc = allpieces & rookmask[endsqi];
-			move.attackset[endsqi] = rookattset[endsqi][(rookocc
-					* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+			move.attackSet[endsqi] =
+					rookattset[endsqi][(rookocc * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
-			move.queens[playeropp] &= ~move.rooks[player]; /* Capture the black piece (NO KING CAPTURE) */
-			move.rooks[playeropp] &= ~move.rooks[player];
-			move.bishops[playeropp] &= ~move.rooks[player];
-			move.knights[playeropp] &= ~move.rooks[player];
-			move.pawns[playeropp] &= ~move.rooks[player];
+			move.pieces[QUEENS][playeropp] &= ~move.pieces[ROOKS][player]; /* Capture the black piece (NO KING CAPTURE) */
+			move.pieces[ROOKS][playeropp] &= ~move.pieces[ROOKS][player];
+			move.pieces[BISHOPS][playeropp] &= ~move.pieces[ROOKS][player];
+			move.pieces[KNIGHTS][playeropp] &= ~move.pieces[ROOKS][player];
+			move.pieces[PAWNS][playeropp] &= ~move.pieces[ROOKS][player];
 
 			/* +++ */
 			updslidpieces_capt(&move, startsqi, player, playeropp);
@@ -960,45 +895,44 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Performance Issue: Is there a need for checking check when the rook in the corner moved? */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[player] & ACORNER(player)) == 0)
-					move.states.queencastle[player] = 0; /* Adjust castling rights if a rook moved */
-				if ((move.rooks[player] & HCORNER(player)) == 0)
-					move.states.kingcastle[player] = 0;
-				if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-					move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-				if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-					move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][player] & ACORNER(player)) == 0)
+					move.states.queenCastle[player] = 0; /* Adjust castling rights if a rook moved */
+				if ((move.pieces[ROOKS][player] & HCORNER(player)) == 0)
+					move.states.kingCastle[player] = 0;
+				if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+					move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+				if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+					move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Rook just captured a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& ~getpieces(playeropp, &position); /* Now consider the non-captures */
+		possible = position.attackSet[startsqi] & ~forbidden & ~getpieces(playeropp, &position); /* Now consider the non-captures */
 
 		while (possible != 0) { /* While there are squares for the rook to move to */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.rooks[player], startsqi + 1); /* Remove that rook from the board */
+			CB(move.pieces[ROOKS][player], startsqi + 1); /* Remove that rook from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.rooks[player], endsqi + 1); /* Set rook's position to first possible */
+			SB(move.pieces[ROOKS][player], endsqi + 1); /* Set rook's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			rookocc = allpieces & rookmask[endsqi];
-			move.attackset[endsqi] = rookattset[endsqi][(rookocc
-					* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+			move.attackSet[endsqi] =
+					rookattset[endsqi][(rookocc * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
 
@@ -1009,15 +943,15 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Performance Issue: Is there a need for checking check when the rook in the corner moved? */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[player] & ACORNER(player)) == 0)
-					move.states.queencastle[player] = 0; /* Adjust castling rights if a rook moved */
-				if ((move.rooks[player] & HCORNER(player)) == 0)
-					move.states.kingcastle[player] = 0;
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][player] & ACORNER(player)) == 0)
+					move.states.queenCastle[player] = 0; /* Adjust castling rights if a rook moved */
+				if ((move.pieces[ROOKS][player] & HCORNER(player)) == 0)
+					move.states.kingCastle[player] = 0;
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Rook did not capture a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1025,44 +959,42 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 	}
 
 	/* Now the bishops */
-	pieces = position.bishops[player];
+	pieces = position.pieces[BISHOPS][player];
 	while (FSB(pieces) != 0) { /* While there are bishops to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the bishop is on */
 
 		/* Calculate possible squares for the bishop on startsqi */
-		forbidden = position.king[player] | position.queens[player]
-				| position.rooks[player] | position.bishops[player]
-				| position.knights[player] | position.pawns[player];
+		forbidden = position.pieces[KING][player] | position.pieces[QUEENS][player] | position.pieces[ROOKS][player]
+				| position.pieces[BISHOPS][player] | position.pieces[KNIGHTS][player] | position.pieces[PAWNS][player];
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& getpieces(playeropp, &position); /* First consider the captures */
+		possible = position.attackSet[startsqi] & ~forbidden & getpieces(playeropp, &position); /* First consider the captures */
 
 		while (possible != 0) { /* While there are pieces for the bishop to capture */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.bishops[player], startsqi + 1); /* Remove that bishop from the board */
+			CB(move.pieces[BISHOPS][player], startsqi + 1); /* Remove that bishop from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.bishops[player], endsqi + 1); /* Set bishop's position to first possible */
+			SB(move.pieces[BISHOPS][player], endsqi + 1); /* Set bishop's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			bishopocc = allpieces & bishopmask[endsqi];
-			move.attackset[endsqi] |= bishopattset[endsqi][(bishopocc
-					* bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
+			move.attackSet[endsqi] |= bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
+					>> bishopmagic[endsqi].shift];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
-			move.queens[playeropp] &= ~move.bishops[player]; /* Capture the black piece (NO KING CAPTURE) */
-			move.rooks[playeropp] &= ~move.bishops[player];
-			move.bishops[playeropp] &= ~move.bishops[player];
-			move.knights[playeropp] &= ~move.bishops[player];
-			move.pawns[playeropp] &= ~move.bishops[player];
+			move.pieces[QUEENS][playeropp] &= ~move.pieces[BISHOPS][player]; /* Capture the black piece (NO KING CAPTURE) */
+			move.pieces[ROOKS][playeropp] &= ~move.pieces[BISHOPS][player];
+			move.pieces[BISHOPS][playeropp] &= ~move.pieces[BISHOPS][player];
+			move.pieces[KNIGHTS][playeropp] &= ~move.pieces[BISHOPS][player];
+			move.pieces[PAWNS][playeropp] &= ~move.pieces[BISHOPS][player];
 
 			/* +++ */
 			updslidpieces_capt(&move, startsqi, player, playeropp);
@@ -1070,41 +1002,40 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-					move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-				if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-					move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+					move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+				if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+					move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Bishop just captured a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& ~getpieces(playeropp, &position); /* Now consider the non-captures */
+		possible = position.attackSet[startsqi] & ~forbidden & ~getpieces(playeropp, &position); /* Now consider the non-captures */
 
 		while (possible != 0) { /* While there are squares for the bishop to move to */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.bishops[player], startsqi + 1); /* Remove that bishop from the board */
+			CB(move.pieces[BISHOPS][player], startsqi + 1); /* Remove that bishop from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.bishops[player], endsqi + 1); /* Set bishop's position to first possible */
+			SB(move.pieces[BISHOPS][player], endsqi + 1); /* Set bishop's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			bishopocc = allpieces & bishopmask[endsqi];
-			move.attackset[endsqi] |= bishopattset[endsqi][(bishopocc
-					* bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
+			move.attackSet[endsqi] |= bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
+					>> bishopmagic[endsqi].shift];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
 
@@ -1114,11 +1045,11 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Bishop did not capture a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1126,78 +1057,75 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 	}
 
 	/* Now the knights */
-	pieces = position.knights[player];
+	pieces = position.pieces[KNIGHTS][player];
 	while (FSB(pieces) != 0) { /* While there are knights to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the knight is on */
 
 		/* Calculate possible squares for the knight on startsqi */
-		forbidden = position.king[player] | position.queens[player]
-				| position.rooks[player] | position.bishops[player]
-				| position.knights[player] | position.pawns[player];
+		forbidden = position.pieces[KING][player] | position.pieces[QUEENS][player] | position.pieces[ROOKS][player]
+				| position.pieces[BISHOPS][player] | position.pieces[KNIGHTS][player] | position.pieces[PAWNS][player];
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& getpieces(playeropp, &position); /* First consider the captures */
+		possible = position.attackSet[startsqi] & ~forbidden & getpieces(playeropp, &position); /* First consider the captures */
 
 		while (possible != 0) { /* While there are pieces for the knight to capture */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.knights[player], startsqi + 1); /* Remove that knight from the board */
+			CB(move.pieces[KNIGHTS][player], startsqi + 1); /* Remove that knight from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.knights[player], endsqi + 1); /* Set knight's position to first possible */
+			SB(move.pieces[KNIGHTS][player], endsqi + 1); /* Set knight's position to first possible */
 
 			/* +++ */
-			move.attackset[endsqi] = knightmoves[endsqi]; /* Update attack set of end square */
+			move.attackSet[endsqi] = knightmoves[endsqi]; /* Update attack set of end square */
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
 
-			move.queens[playeropp] &= ~move.knights[player]; /* Capture the black piece (NO KING CAPTURE) */
-			move.rooks[playeropp] &= ~move.knights[player];
-			move.bishops[playeropp] &= ~move.knights[player];
-			move.knights[playeropp] &= ~move.knights[player];
-			move.pawns[playeropp] &= ~move.knights[player];
+			move.pieces[QUEENS][playeropp] &= ~move.pieces[KNIGHTS][player]; /* Capture the black piece (NO KING CAPTURE) */
+			move.pieces[ROOKS][playeropp] &= ~move.pieces[KNIGHTS][player];
+			move.pieces[BISHOPS][playeropp] &= ~move.pieces[KNIGHTS][player];
+			move.pieces[KNIGHTS][playeropp] &= ~move.pieces[KNIGHTS][player];
+			move.pieces[PAWNS][playeropp] &= ~move.pieces[KNIGHTS][player];
 
 			/* +++ */
 			updslidpieces_capt(&move, startsqi, player, playeropp);
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-					move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-				if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-					move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+					move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+				if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+					move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Knight just captured a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
 
-		possible = position.attackset[startsqi] & ~forbidden
-				& ~getpieces(playeropp, &position); /* Now consider the non-captures */
+		possible = position.attackSet[startsqi] & ~forbidden & ~getpieces(playeropp, &position); /* Now consider the non-captures */
 
 		while (possible != 0) { /* While there are squares for the knight to move to */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.knights[player], startsqi + 1); /* Remove that knight from the board */
+			CB(move.pieces[KNIGHTS][player], startsqi + 1); /* Remove that knight from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.knights[player], endsqi + 1); /* Set knight's position to first possible */
+			SB(move.pieces[KNIGHTS][player], endsqi + 1); /* Set knight's position to first possible */
 
 			/* +++ */
-			move.attackset[endsqi] = knightmoves[endsqi]; /* Update attack set of end square */
+			move.attackSet[endsqi] = knightmoves[endsqi]; /* Update attack set of end square */
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
 
@@ -1207,11 +1135,11 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies++; /* Knight did not capture a piece */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1221,45 +1149,44 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 	/* Now the pawns */
 	forbidden = (getallpieces(&position)); /* Pawns cannot move (not capture) to these squares */
 
-	pieces = position.pawns[player] & CHESSRANK(player, 6); /* First consider pawn promotions */
+	pieces = position.pieces[PAWNS][player] & CHESSRANK(player, 6); /* First consider pawn promotions */
 	while (FSB(pieces) != 0) { /* While there are pawns to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the pawn is on */
 
 		/* First consider possible captures */
 		/* No capture of a pawn possible on last rank */
-		possible = position.attackset[startsqi]
-				& (position.queens[playeropp] | position.rooks[playeropp]
-						| position.bishops[playeropp]
-						| position.knights[playeropp]);
+		possible = position.attackSet[startsqi]
+				& (position.pieces[QUEENS][playeropp] | position.pieces[ROOKS][playeropp]
+						| position.pieces[BISHOPS][playeropp] | position.pieces[KNIGHTS][playeropp]);
 
 		while (possible != 0) { /* While there are squares for the pawn to move to */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.pawns[player], startsqi + 1); /* Remove that pawn from the board */
+			CB(move.pieces[PAWNS][player], startsqi + 1); /* Remove that pawn from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.queens[player], endsqi + 1); /* Promote pawn to queen */
+			SB(move.pieces[QUEENS][player], endsqi + 1); /* Promote pawn to queen */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			rookocc = allpieces & rookmask[endsqi];
 			bishopocc = allpieces & bishopmask[endsqi];
-			move.attackset[endsqi] = rookattset[endsqi][(rookocc
-					* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
-			move.attackset[endsqi] |= bishopattset[endsqi][(bishopocc
-					* bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
+			move.attackSet[endsqi] =
+					rookattset[endsqi][(rookocc * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+			move.attackSet[endsqi] |= bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
+					>> bishopmagic[endsqi].shift];
 
 			//CB(possible, endsqi + 1);				/* Clear that move from the possible ones */
-			move.queens[playeropp] &= ~move.queens[player]; /* Capture a black piece (NO KING CAPTURE) */
-			move.rooks[playeropp] &= ~move.queens[player];
-			move.bishops[playeropp] &= ~move.queens[player];
-			move.knights[playeropp] &= ~move.queens[player];
+			move.pieces[QUEENS][playeropp] &= ~move.pieces[QUEENS][player]; /* Capture a black piece (NO KING CAPTURE) */
+			move.pieces[ROOKS][playeropp] &= ~move.pieces[QUEENS][player];
+			move.pieces[BISHOPS][playeropp] &= ~move.pieces[QUEENS][player];
+			move.pieces[KNIGHTS][playeropp] &= ~move.pieces[QUEENS][player];
 
 			/* +++ */
 			updslidpieces_capt(&move, startsqi, player, playeropp);
@@ -1267,56 +1194,55 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-					move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-				if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-					move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+					move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+				if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+					move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Pawn just moved */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 				/* Since the promotion to a queen was a legal move, all other promotions are as well */
 				/* We just have to change the queen to the other pieces and add the moves */
 
-				CB(move.queens[player], endsqi + 1); /* Clear promoted queen */
-				SB(move.rooks[player], endsqi + 1); /* Promote to rook */
+				CB(move.pieces[QUEENS][player], endsqi + 1); /* Clear promoted queen */
+				SB(move.pieces[ROOKS][player], endsqi + 1); /* Promote to rook */
 
 				/* +++ */
 				/* Update attack set of end square */
 				rookocc = allpieces & rookmask[endsqi];
-				move.attackset[endsqi] = rookattset[endsqi][(rookocc
-						* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+				move.attackSet[endsqi] = rookattset[endsqi][(rookocc * rookmagic[endsqi].number)
+						>> rookmagic[endsqi].shift];
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
-				CB(move.rooks[player], endsqi + 1); /* Clear promoted rook */
-				SB(move.bishops[player], endsqi + 1); /* Promote to bishop */
+				CB(move.pieces[ROOKS][player], endsqi + 1); /* Clear promoted rook */
+				SB(move.pieces[BISHOPS][player], endsqi + 1); /* Promote to bishop */
 
 				/* +++ */
 				/* Update attack set of end square */
 				bishopocc = allpieces & bishopmask[endsqi];
-				move.attackset[endsqi] = bishopattset[endsqi][(bishopocc
-						* bishopmagic[endsqi].number)
+				move.attackSet[endsqi] = bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
 						>> bishopmagic[endsqi].shift];
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
-				CB(move.bishops[player], endsqi + 1); /* Clear promoted bishop */
-				SB(move.knights[player], endsqi + 1); /* Promote to knight */
+				CB(move.pieces[BISHOPS][player], endsqi + 1); /* Clear promoted bishop */
+				SB(move.pieces[KNIGHTS][player], endsqi + 1); /* Promote to knight */
 
 				/* +++ */
 				/* Update attack set of end square */
-				move.attackset[endsqi] = knightmoves[endsqi];
+				move.attackSet[endsqi] = knightmoves[endsqi];
 
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 			CB(possible, FSB(possible));
@@ -1329,24 +1255,24 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.pawns[player], startsqi + 1); /* Remove that pawn from the board */
+			CB(move.pieces[PAWNS][player], startsqi + 1); /* Remove that pawn from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.queens[player], endsqi + 1); /* Promote pawn to queen */
+			SB(move.pieces[QUEENS][player], endsqi + 1); /* Promote pawn to queen */
 
 			/* +++ */
 			/* Update attack set of end square */
 			allpieces = getallpieces(&move);
 			rookocc = allpieces & rookmask[endsqi];
 			bishopocc = allpieces & bishopmask[endsqi];
-			move.attackset[endsqi] = rookattset[endsqi][(rookocc
-					* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
-			move.attackset[endsqi] |= bishopattset[endsqi][(bishopocc
-					* bishopmagic[endsqi].number) >> bishopmagic[endsqi].shift];
+			move.attackSet[endsqi] =
+					rookattset[endsqi][(rookocc * rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+			move.attackSet[endsqi] |= bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
+					>> bishopmagic[endsqi].shift];
 
 			/* +++ */
 			updslidpieces(&move, startsqi, endsqi, player, playeropp);
@@ -1354,93 +1280,91 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* Pawn just moved */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 				/* Since the promotion to a queen was a legal move, all other promotions are as well */
 				/* We just have to change the queen to the other pieces and add the moves */
 
-				CB(move.queens[player], endsqi + 1); /* Clear promoted queen */
-				SB(move.rooks[player], endsqi + 1); /* Promote to rook */
+				CB(move.pieces[QUEENS][player], endsqi + 1); /* Clear promoted queen */
+				SB(move.pieces[ROOKS][player], endsqi + 1); /* Promote to rook */
 
 				/* +++ */
 				/* Update attack set of end square */
 				rookocc = allpieces & rookmask[endsqi];
-				move.attackset[endsqi] = rookattset[endsqi][(rookocc
-						* rookmagic[endsqi].number) >> rookmagic[endsqi].shift];
+				move.attackSet[endsqi] = rookattset[endsqi][(rookocc * rookmagic[endsqi].number)
+						>> rookmagic[endsqi].shift];
 
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
-				CB(move.rooks[player], endsqi + 1); /* Clear promoted rook */
-				SB(move.bishops[player], endsqi + 1); /* Promote to bishop */
+				CB(move.pieces[ROOKS][player], endsqi + 1); /* Clear promoted rook */
+				SB(move.pieces[BISHOPS][player], endsqi + 1); /* Promote to bishop */
 
 				/* +++ */
 				/* Update attack set of end square */
 				bishopocc = allpieces & bishopmask[endsqi];
-				move.attackset[endsqi] = bishopattset[endsqi][(bishopocc
-						* bishopmagic[endsqi].number)
+				move.attackSet[endsqi] = bishopattset[endsqi][(bishopocc * bishopmagic[endsqi].number)
 						>> bishopmagic[endsqi].shift];
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 
-				CB(move.bishops[player], endsqi + 1); /* Clear promoted bishop */
-				SB(move.knights[player], endsqi + 1); /* Promote to knight */
+				CB(move.pieces[BISHOPS][player], endsqi + 1); /* Clear promoted bishop */
+				SB(move.pieces[KNIGHTS][player], endsqi + 1); /* Promote to knight */
 
 				/* +++ */
 				/* Update attack set of end square */
-				move.attackset[endsqi] = knightmoves[endsqi];
+				move.attackSet[endsqi] = knightmoves[endsqi];
 
 				/* PERFORMANCE ISSUE: Only new attack set for the promoted piece necessary */
 				//initattsets(&move);
-				quietMoves[movecount] = move;
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
 		CB(pieces, FSB(pieces)); /* Clear that piece from the ones to consider */
 	}
 
-	pieces = position.pawns[player] & ~(CHESSRANK(player, 6)); /* Now consider non special pawn moves */
+	pieces = position.pieces[PAWNS][player] & ~(CHESSRANK(player, 6)); /* Now consider non special pawn moves */
 	while (FSB(pieces) != 0) { /* While there are pawns to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the pawn is on */
 
 		/* First consider possible captures */
-		possible = position.attackset[startsqi]
-				& (position.queens[playeropp] | position.rooks[playeropp]
-						| position.bishops[playeropp]
-						| position.knights[playeropp]
-						| position.pawns[playeropp]);
+		possible = position.attackSet[startsqi]
+				& (position.pieces[QUEENS][playeropp] | position.pieces[ROOKS][playeropp]
+						| position.pieces[BISHOPS][playeropp] | position.pieces[KNIGHTS][playeropp]
+						| position.pieces[PAWNS][playeropp]);
 
 		while (possible != 0) { /* While there are squares for the pawn to move to */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.pawns[player], startsqi + 1); /* Remove that pawn from the board */
+			CB(move.pieces[PAWNS][player], startsqi + 1); /* Remove that pawn from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.pawns[player], endsqi + 1); /* Set pawn's position to first possible */
+			SB(move.pieces[PAWNS][player], endsqi + 1); /* Set pawn's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
-			move.attackset[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
+			move.attackSet[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
 
 			CB(possible, endsqi + 1); /* Clear that move from the possible ones */
-			move.queens[playeropp] &= ~move.pawns[player]; /* Capture a black piece (NO KING CAPTURE) */
-			move.rooks[playeropp] &= ~move.pawns[player];
-			move.bishops[playeropp] &= ~move.pawns[player];
-			move.knights[playeropp] &= ~move.pawns[player];
-			move.pawns[playeropp] &= ~move.pawns[player];
+			move.pieces[QUEENS][playeropp] &= ~move.pieces[PAWNS][player]; /* Capture a black piece (NO KING CAPTURE) */
+			move.pieces[ROOKS][playeropp] &= ~move.pieces[PAWNS][player];
+			move.pieces[BISHOPS][playeropp] &= ~move.pieces[PAWNS][player];
+			move.pieces[KNIGHTS][playeropp] &= ~move.pieces[PAWNS][player];
+			move.pieces[PAWNS][playeropp] &= ~move.pieces[PAWNS][player];
 
 			/* +++ */
 			updslidpieces_capt(&move, startsqi, player, playeropp);
@@ -1448,15 +1372,15 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				if ((move.rooks[playeropp] & ACORNER(playeropp)) == 0)
-					move.states.queencastle[playeropp] = 0; /* Adjust castling rights of opponent */
-				if ((move.rooks[playeropp] & HCORNER(playeropp)) == 0)
-					move.states.kingcastle[playeropp] = 0; /* if a rook was captured */
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				if ((move.pieces[ROOKS][playeropp] & ACORNER(playeropp)) == 0)
+					move.states.queenCastle[playeropp] = 0; /* Adjust castling rights of opponent */
+				if ((move.pieces[ROOKS][playeropp] & HCORNER(playeropp)) == 0)
+					move.states.kingCastle[playeropp] = 0; /* if a rook was captured */
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* A pawn just moved */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1468,29 +1392,29 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.pawns[player], startsqi + 1); /* Remove that pawn from the board */
+			CB(move.pieces[PAWNS][player], startsqi + 1); /* Remove that pawn from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.pawns[player], FSB(possible)); /* Set pawn's position to first possible */
+			SB(move.pieces[PAWNS][player], FSB(possible)); /* Set pawn's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
-			move.attackset[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
+			move.attackSet[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
 
 			/* +++ */
 			updslidpieces(&move, startsqi, endsqi, player, playeropp);
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* A pawn just moved */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1498,46 +1422,44 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 	}
 
 	/* Now consider pawn jumps in the beginning */
-	pieces = position.pawns[player] & CHESSRANK(player, 1);
+	pieces = position.pieces[PAWNS][player] & CHESSRANK(player, 1);
 	while (FSB(pieces) != 0) { /* While there are pawns to consider */
 		startsqi = FSB(pieces) - 1; /* Square index where the pawn is on */
 
 		/* Possible pawn jumps */
 		/* Code behind '|' prevents the square on fourth(white)/fifth(black) to be possible if the pawn is blocked by a piece on third/sixth rank */
 		if (player == WHITE)
-			possible = pawnjumps[player][GETFILE(startsqi)]
-					& ~(forbidden | (forbidden << 8));
+			possible = pawnjumps[player][GETFILE(startsqi)] & ~(forbidden | (forbidden << 8));
 		else
-			possible = pawnjumps[player][GETFILE(startsqi)]
-					& ~(forbidden | (forbidden >> 8));
+			possible = pawnjumps[player][GETFILE(startsqi)] & ~(forbidden | (forbidden >> 8));
 
 		if (possible != 0) { /* If pawn jump is possible */
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.pawns[player], startsqi + 1); /* Remove that pawn from the board */
+			CB(move.pieces[PAWNS][player], startsqi + 1); /* Remove that pawn from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.pawns[player], FSB(possible)); /* Set pawn's position to first possible */
+			SB(move.pieces[PAWNS][player], FSB(possible)); /* Set pawn's position to first possible */
 
 			/* +++ */
 			/* Update attack set of end square */
-			move.attackset[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
+			move.attackSet[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
 
 			/* +++ */
 			updslidpieces(&move, startsqi, endsqi, player, playeropp);
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = GETFILE(startsqi); /* En passant possible on that file */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = GETFILE(startsqi); /* En passant possible on that file */
 				move.states.plies = 0; /* A pawn just moved */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1546,35 +1468,32 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 
 	/* Now consider en passant captures */
 	/* Is en passant possible? */
-	if (position.states.enpassant > -1) {
-		pieces = position.pawns[player]
-				& epstartsq[player][position.states.enpassant];
+	if (position.states.enPassant > -1) {
+		pieces = position.pieces[PAWNS][player] & epstartsq[player][position.states.enPassant];
 		while (FSB(pieces) != 0) {
 			startsqi = FSB(pieces) - 1;
-			possible = pawnattacks[player][PAWNINDEX(startsqi)]
-					& ((A3 | A6) << position.states.enpassant); /* Captures possible on 3-rd/6-th rank of given file */
+			possible = pawnattacks[player][PAWNINDEX(startsqi)] & ((A3 | A6) << position.states.enPassant); /* Captures possible on 3-rd/6-th rank of given file */
 
 			move = position; /* Set move to current position */
 
 			/* +++ */
-			move.attackset[startsqi] = 0; /* Clear attack set of start square */
+			move.attackSet[startsqi] = 0; /* Clear attack set of start square */
 
-			CB(move.pawns[player], startsqi + 1); /* Remove that pawn from the board */
+			CB(move.pieces[PAWNS][player], startsqi + 1); /* Remove that pawn from the board */
 
 			/* +++ */
 			endsqi = FSB(possible) - 1;
 
-			SB(move.pawns[player], endsqi + 1); /* Set pawn to new position */
+			SB(move.pieces[PAWNS][player], endsqi + 1); /* Set pawn to new position */
 
 			/* +++ */
 			/* Update attack set of end square */
-			move.attackset[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
+			move.attackSet[endsqi] = pawnattacks[player][PAWNINDEX(endsqi)];
 			/* +++ */
 			sqi = FSB(CHESSRANK(playeropp, 3)
-					& CHESSFILE(position.states.enpassant)) - 1;
+					& CHESSFILE(position.states.enPassant)) - 1;
 
-			move.pawns[playeropp] &= ~(CHESSRANK(playeropp, 3)
-					& CHESSFILE(position.states.enpassant)); /* Remove pawn from fourth rank (seen from playeropp) */
+			move.pieces[PAWNS][playeropp] &= ~(CHESSRANK(playeropp, 3) & CHESSFILE(position.states.enPassant)); /* Remove pawn from fourth rank (seen from playeropp) */
 
 			/* +++ */
 			updslidpieces(&move, startsqi, endsqi, player, playeropp); /* For the pawn that captured (but did not get the pawn on the square it moved to) */
@@ -1582,11 +1501,11 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 			/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 			//initattsets(&move); /* Update the attack sets of each square */
 			/* Is the king now in check? */
-			if ((move.king[player] & getattsquares(playeropp, move)) == 0) {
-				move.states.enpassant = -1; /* En passant is not possible */
+			if ((move.pieces[KING][player] & getattsquares(playeropp, move)) == 0) {
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies = 0; /* A pawn just moved */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 			CB(pieces, FSB(pieces));
@@ -1595,19 +1514,18 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 
 	/* Now consider castlings */
 	/* Is castling king side possible? */
-	if (position.states.kingcastle[player] == 1) {
+	if (position.states.kingCastle[player] == 1) {
 		/* Is there a piece between king and rook? */
 		if ((getallpieces(&position) & ((F1 | G1) << (player * 56))) == 0) {
 			/* Is one of the squares that the king touches while castling king side attacked? */
-			if ((getattsquares(playeropp, position)
-					& ((E1 | F1 | G1) << (player * 56))) == 0) {
+			if ((getattsquares(playeropp, position) & ((E1 | F1 | G1) << (player * 56))) == 0) {
 				move = position;
-				move.king[player] <<= 2; //G1 << (player * 56); /* Put two squares to the right */
-				move.rooks[player] &= ~(H1 << (player * 56)); /* Remove rook from H1/H8 */
-				move.rooks[player] |= F1 << (player * 56); /* Put rook on F1/F8 */
+				move.pieces[KING][player] <<= 2; //G1 << (player * 56); /* Put two squares to the right */
+				move.pieces[ROOKS][player] &= ~(H1 << (player * 56)); /* Remove rook from H1/H8 */
+				move.pieces[ROOKS][player] |= F1 << (player * 56); /* Put rook on F1/F8 */
 
 				/* +++ */
-				move.attackset[7 + player * 56] = 0;	/* Update attack set of corner where rook was in */
+				move.attackSet[7 + player * 56] = 0; /* Update attack set of corner where rook was in */
 				startsqi = 4 + player * 56; /* E1 or E8 */
 				endsqi = 5 + player * 56; /* F1 or F8 */
 				updslidpieces(&move, startsqi, endsqi, player, playeropp); /* Update attsets as if a piece moved from E1/8 to F1/8 */
@@ -1620,50 +1538,47 @@ int generatemoves(chessposition position, chessposition* loudMoves, chesspositio
 				/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 				//initattsets(&move);
 				/* Check if king is in check not necessary? */
-				move.states.kingcastle[player] = 0; /* Castling is no longer possible */
-				move.states.queencastle[player] = 0;
-				move.states.enpassant = -1; /* En passant is not possible */
+				move.states.kingCastle[player] = 0; /* Castling is no longer possible */
+				move.states.queenCastle[player] = 0;
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies++; /* No capture and no pawn move */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
 	}
 
 	/* Is castling queen side possible? */
-	if (position.states.queencastle[player] == 1) {
+	if (position.states.queenCastle[player] == 1) {
 		/* Is there a piece between king and rook? */
-		if ((getallpieces(&position) & ((B1 | C1 | D1) << (player * 56)))
-				== 0) {
+		if ((getallpieces(&position) & ((B1 | C1 | D1) << (player * 56))) == 0) {
 			/* Is one of the squares that the king touches while castling queen side attacked? */
-			if ((getattsquares(playeropp, position)
-					& ((C1 | D1 | E1) << (player * 56))) == 0) {
+			if ((getattsquares(playeropp, position) & ((C1 | D1 | E1) << (player * 56))) == 0) {
 				move = position;
-				move.king[player] >>= 2; //C1 << (player * 56); /* Put king on C1/C8 */
-				move.rooks[player] &= ~(A1 << (player * 56)); /* Remove rook from A1/A8 */
-				move.rooks[player] |= D1 << (player * 56); /* Put rook on D1/D8 */
+				move.pieces[KING][player] >>= 2; //C1 << (player * 56); /* Put king on C1/C8 */
+				move.pieces[ROOKS][player] &= ~(A1 << (player * 56)); /* Remove rook from A1/A8 */
+				move.pieces[ROOKS][player] |= D1 << (player * 56); /* Put rook on D1/D8 */
 
 				/* +++ */
-				move.attackset[0 + player * 56] = 0;	/* Update attack set of corner where rook was in */
+				move.attackSet[0 + player * 56] = 0; /* Update attack set of corner where rook was in */
 				startsqi = 4 + player * 56; /* E1 or E8 */
 				endsqi = 3 + player * 56; /* D1 or D8 */
 				updslidpieces(&move, startsqi, endsqi, player, playeropp); /* Update attsets as if a piece moved from E1/8 to C1/8 */
 				/* The following does not seem to be necessary */
-								//startsqi = 7 + player * 56;	/* H1 or H8 */
-								//endsqi = 6 + player * 56;	/* G1 or G8 */
-								//updslidpieces(&move, startsqi, endsqi, player, playeropp);	/* Update attsets as if a piece moved from H1/8 to G1/8 */
-								/* Also the rook that moved seems to get the correct attack sets */
+				//startsqi = 7 + player * 56;	/* H1 or H8 */
+				//endsqi = 6 + player * 56;	/* G1 or G8 */
+				//updslidpieces(&move, startsqi, endsqi, player, playeropp);	/* Update attsets as if a piece moved from H1/8 to G1/8 */
+				/* Also the rook that moved seems to get the correct attack sets */
 				/* PERFORMANCE ISSUE: Not necessary to update ALL attack sets */
 				//initattsets(&move);
-
 				/* Check if king is in check not necessary? */
-				move.states.kingcastle[player] = 0; /* Castling is no longer possible */
-				move.states.queencastle[player] = 0;
-				move.states.enpassant = -1; /* En passant is not possible */
+				move.states.kingCastle[player] = 0; /* Castling is no longer possible */
+				move.states.queenCastle[player] = 0;
+				move.states.enPassant = -1; /* En passant is not possible */
 				move.states.plies++; /* No capture and no pawn move */
-				move.states.tomove = playeropp; /* Now the opponent is to move */
-				quietMoves[movecount] = move;
+				move.states.toMove = playeropp; /* Now the opponent is to move */
+				moves[movecount] = move;
 				movecount++;
 			}
 		}
@@ -1737,84 +1652,256 @@ int getmovenotation(chessposition *before, chessposition *now, char *notation) {
 	int player;
 	int startsqi, endsqi;
 
-	player = before->states.tomove;
+	player = before->states.toMove;
 	notation[4] = '\0';
 	notation[5] = '\0';
 
-	if (before->king[player] != now->king[player]) { /* The king moved */
-		startsqi = FSB(before->king[player]) - 1;
-		endsqi = FSB(now->king[player]) - 1;
+	if (before->pieces[KING][player] != now->pieces[KING][player]) { /* The king moved */
+		startsqi = FSB(before->pieces[KING][player]) - 1;
+		endsqi = FSB(now->pieces[KING][player]) - 1;
 		notation[0] = getfile(startsqi);
 		notation[1] = getrank(startsqi);
 		notation[2] = getfile(endsqi);
 		notation[3] = getrank(endsqi);
-	} else if (before->pawns[player] != now->pawns[player]) { /* A pawn moved */
-		startsqi = FSB(before->pawns[player] & ~(now->pawns[player])) - 1;
+	}
+	else if (before->pieces[PAWNS][player] != now->pieces[PAWNS][player]) { /* A pawn moved */
+		startsqi =
+		FSB(before->pieces[PAWNS][player] & ~(now->pieces[PAWNS][player])) - 1;
 		notation[0] = getfile(startsqi);
 		notation[1] = getrank(startsqi);
-		if (POPCNT(before->pawns[player]) == POPCNT(now->pawns[player])) { /* Amount of players pawns has not changed */
-			endsqi = FSB(now->pawns[player] & ~(before->pawns[player])) - 1;
+		if (POPCNT(
+				before->pieces[PAWNS][player]) == POPCNT(now->pieces[PAWNS][player])) { /* Amount of players pawns has not changed */
+			endsqi =
+			FSB(
+					now->pieces[PAWNS][player] & ~(before->pieces[PAWNS][player])) - 1;
 			notation[2] = getfile(endsqi);
 			notation[3] = getrank(endsqi);
-		} else {
-			if (POPCNT(before->queens[player]) != POPCNT(now->queens[player])) { /* Pawn promoted to queen */
-				endsqi = FSB(now->queens[player] & ~(before->queens[player]))
-						- 1;
+		}
+		else {
+			if (POPCNT(
+					before->pieces[QUEENS][player]) != POPCNT(now->pieces[QUEENS][player])) { /* Pawn promoted to queen */
+				endsqi =
+				FSB(
+						now->pieces[QUEENS][player] & ~(before->pieces[QUEENS][player])) - 1;
 				notation[2] = getfile(endsqi);
 				notation[3] = getrank(endsqi);
 				notation[4] = 'q';
-			} else if (POPCNT(
-					before->rooks[player]) != POPCNT(now->rooks[player])) { /* Pawn promoted to rook */
-				endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
+			}
+			else if (POPCNT(
+					before->pieces[ROOKS][player]) != POPCNT(now->pieces[ROOKS][player])) { /* Pawn promoted to rook */
+				endsqi =
+				FSB(
+						now->pieces[ROOKS][player] & ~(before->pieces[ROOKS][player])) - 1;
 				notation[2] = getfile(endsqi);
 				notation[3] = getrank(endsqi);
 				notation[4] = 'r';
-			} else if (POPCNT(
-					before->bishops[player]) != POPCNT(now->bishops[player])) { /* Pawn promoted to bishop */
-				endsqi = FSB(now->bishops[player] & ~(before->bishops[player]))
-						- 1;
+			}
+			else if (POPCNT(
+					before->pieces[BISHOPS][player]) != POPCNT(now->pieces[BISHOPS][player])) { /* Pawn promoted to bishop */
+				endsqi =
+				FSB(
+						now->pieces[BISHOPS][player] & ~(before->pieces[BISHOPS][player])) - 1;
 				notation[2] = getfile(endsqi);
 				notation[3] = getrank(endsqi);
 				notation[4] = 'b';
-			} else if (POPCNT(
-					before->knights[player]) != POPCNT(now->knights[player])) { /* Pawn promoted to knight */
-				endsqi = FSB(now->knights[player] & ~(before->knights[player]))
-						- 1;
+			}
+			else if (POPCNT(
+					before->pieces[KNIGHTS][player]) != POPCNT(now->pieces[KNIGHTS][player])) { /* Pawn promoted to knight */
+				endsqi =
+				FSB(
+						now->pieces[KNIGHTS][player] & ~(before->pieces[KNIGHTS][player])) - 1;
 				notation[2] = getfile(endsqi);
 				notation[3] = getrank(endsqi);
 				notation[4] = 'n';
 			}
 		}
-	} else if (before->queens[player] != now->queens[player]) { /* A queen moved */
-		startsqi = FSB(before->queens[player] & ~(now->queens[player])) - 1;
-		endsqi = FSB(now->queens[player] & ~(before->queens[player])) - 1;
+	}
+	else if (before->pieces[QUEENS][player] != now->pieces[QUEENS][player]) { /* A queen moved */
+		startsqi =
+		FSB(before->pieces[QUEENS][player] & ~(now->pieces[QUEENS][player])) - 1;
+		endsqi =
+		FSB(now->pieces[QUEENS][player] & ~(before->pieces[QUEENS][player])) - 1;
 		notation[0] = getfile(startsqi);
 		notation[1] = getrank(startsqi);
 		notation[2] = getfile(endsqi);
 		notation[3] = getrank(endsqi);
-	} else if (before->rooks[player] != now->rooks[player]) { /* A rook moved */
-		startsqi = FSB(before->rooks[player] & ~(now->rooks[player])) - 1;
-		endsqi = FSB(now->rooks[player] & ~(before->rooks[player])) - 1;
+	}
+	else if (before->pieces[ROOKS][player] != now->pieces[ROOKS][player]) { /* A rook moved */
+		startsqi =
+		FSB(before->pieces[ROOKS][player] & ~(now->pieces[ROOKS][player])) - 1;
+		endsqi =
+		FSB(now->pieces[ROOKS][player] & ~(before->pieces[ROOKS][player])) - 1;
 		notation[0] = getfile(startsqi);
 		notation[1] = getrank(startsqi);
 		notation[2] = getfile(endsqi);
 		notation[3] = getrank(endsqi);
-	} else if (before->bishops[player] != now->bishops[player]) { /* A bishop moved */
-		startsqi = FSB(before->bishops[player] & ~(now->bishops[player])) - 1;
-		endsqi = FSB(now->bishops[player] & ~(before->bishops[player])) - 1;
+	}
+	else if (before->pieces[BISHOPS][player] != now->pieces[BISHOPS][player]) { /* A bishop moved */
+		startsqi =
+		FSB(
+				before->pieces[BISHOPS][player] & ~(now->pieces[BISHOPS][player])) - 1;
+		endsqi =
+		FSB(
+				now->pieces[BISHOPS][player] & ~(before->pieces[BISHOPS][player])) - 1;
 		notation[0] = getfile(startsqi);
 		notation[1] = getrank(startsqi);
 		notation[2] = getfile(endsqi);
 		notation[3] = getrank(endsqi);
-	} else if (before->knights[player] != now->knights[player]) { /* A knight moved */
-		startsqi = FSB(before->knights[player] & ~(now->knights[player])) - 1;
-		endsqi = FSB(now->knights[player] & ~(before->knights[player])) - 1;
+	}
+	else if (before->pieces[KNIGHTS][player] != now->pieces[KNIGHTS][player]) { /* A knight moved */
+		startsqi =
+		FSB(
+				before->pieces[KNIGHTS][player] & ~(now->pieces[KNIGHTS][player])) - 1;
+		endsqi =
+		FSB(
+				now->pieces[KNIGHTS][player] & ~(before->pieces[KNIGHTS][player])) - 1;
 		notation[0] = getfile(startsqi);
 		notation[1] = getrank(startsqi);
 		notation[2] = getfile(endsqi);
 		notation[3] = getrank(endsqi);
 	}
 	return EXIT_SUCCESS;
+}
+
+int loudMovGen(chessposition *position, chessposition *moves) {
+	// Generates all moves that are not quiet, i.e. captures, promotions.
+	// It stores them in moves and returns their number
+	// No king capture, position must be valid
+
+	bitboard possible, forbidden, pieces, rookOcc, bishopOcc, allPieces;
+	chessposition captures[5][160];	// List of queen, rook, bishop, knight and pawn captures
+	int len[5] = { 0, 0, 0, 0, 0 };	// Length of the corresponding list
+	int player, playerOpp, sqi, startSqi, endSqi, attacker, victim;
+	char moveNota[6];
+	player = position->states.toMove;
+	playerOpp = (player + 1) % 2;
+
+	// Consider promotions
+	pieces = position->pieces[PAWNS][player] & CHESSRANK(player, 6);
+
+
+	// Consider captures by pawns that are not promotions
+	pieces = position->pieces[PAWNS][player] & ~(CHESSRANK(player, 6));
+	while (FSB(pieces) != 0) { // While there are pawns to consider
+		startSqi = FSB(pieces) - 1; // Square index where the pawn is on
+
+		// Consider possible P x victim captures
+		for (victim = QUEENS; victim >= PAWNS; victim--) {
+			possible = position->attackSet[startSqi] & position->pieces[victim][playerOpp];
+
+			while (possible != 0) { // While there are squares for the pawn to move to
+				captures[victim][len[victim]] = *position; // Set move to current position
+				captures[victim][len[victim]].attackSet[startSqi] = 0; // Clear attack set of start square
+				CB(captures[victim][len[victim]].pieces[PAWNS][player], startSqi + 1); // Remove that pawn from the board
+				endSqi = FSB(possible) - 1;
+				SB(captures[victim][len[victim]].pieces[PAWNS][player], endSqi + 1); // Set pawn's position to first possible
+
+				// Update attack set of end square
+				captures[victim][len[victim]].attackSet[endSqi] = pawnattacks[player][PAWNINDEX(endSqi)];
+
+				CB(possible, endSqi + 1); // Clear that move from the possible ones
+				captures[victim][len[victim]].pieces[victim][playerOpp] &=
+						~captures[victim][len[victim]].pieces[PAWNS][player]; // Capture the piece
+
+				updslidpieces_capt(&captures[victim][len[victim]], startSqi, player, playerOpp);
+
+				// Is the king now in check?
+				if ((captures[victim][len[victim]].pieces[KING][player]
+						& getattsquares(playerOpp, captures[victim][len[victim]])) == 0) {
+					// Adjust castling rights of opponent if a rook was captured
+					// PERFORMANCE ISSUE: Shouldn't be checked every single time
+					if ((captures[victim][len[victim]].pieces[ROOKS][playerOpp] & ACORNER(playerOpp)) == 0)
+						captures[victim][len[victim]].states.queenCastle[playerOpp] = 0;
+					if ((captures[victim][len[victim]].pieces[ROOKS][playerOpp] & HCORNER(playerOpp)) == 0)
+						captures[victim][len[victim]].states.kingCastle[playerOpp] = 0;
+					captures[victim][len[victim]].states.enPassant = -1; // En passant is not possible
+					captures[victim][len[victim]].states.plies = 0; // A piece has been captured
+					captures[victim][len[victim]].states.toMove = playerOpp; // Now the opponent is to move
+					getmovenotation(position, &captures[victim][len[victim]], moveNota);
+					printf("%s\n", moveNota);
+					len[victim]++;
+				}
+			}
+		}
+		CB(pieces, startSqi + 1);	// Clear that piece from the possible ones
+	}
+
+	// Consider captures by attackers starting with knights
+	for (attacker = KNIGHTS; attacker <= KING; attacker++) {
+		pieces = position->pieces[attacker][player];
+		while (FSB(pieces) != 0) { // While there are pieces to consider
+			startSqi = FSB(pieces) - 1; // Square index where the piece is on
+
+			// Consider possible attacker x victim captures
+			for (victim = QUEENS; victim >= PAWNS; victim--) {
+				possible = position->attackSet[startSqi] & position->pieces[victim][playerOpp];
+
+				while (possible != 0) { // While there victims for the attacker to capture
+					captures[victim][len[victim]] = *position; // Set move to current position
+					captures[victim][len[victim]].attackSet[startSqi] = 0; // Clear attack set of start square
+					CB(captures[victim][len[victim]].pieces[attacker][player], startSqi + 1); // Remove that piece from the board
+					endSqi = FSB(possible) - 1;
+					SB(captures[victim][len[victim]].pieces[attacker][player], endSqi + 1); // Set piece's position to first possible
+
+					// Update attack set of end square
+					switch (attacker) {
+					case KNIGHTS:
+						captures[victim][len[victim]].attackSet[endSqi] = knightmoves[endSqi];
+						break;
+					case BISHOPS:
+						allPieces = getallpieces(&captures[victim][len[victim]]);
+						bishopOcc = allPieces & bishopmask[endSqi];
+						captures[victim][len[victim]].attackSet[endSqi] = bishopattset[endSqi][(bishopOcc
+								* bishopmagic[endSqi].number) >> bishopmagic[endSqi].shift];
+						break;
+					case ROOKS:
+						allPieces = getallpieces(&captures[victim][len[victim]]);
+						rookOcc = allPieces & rookmask[endSqi];
+						captures[victim][len[victim]].attackSet[endSqi] = rookattset[endSqi][(rookOcc
+								* rookmagic[endSqi].number) >> rookmagic[endSqi].shift];
+						break;
+					case QUEENS:
+						allPieces = getallpieces(&captures[victim][len[victim]]);
+						rookOcc = allPieces & rookmask[endSqi];
+						bishopOcc = allPieces & bishopmask[endSqi];
+						captures[victim][len[victim]].attackSet[endSqi] = rookattset[endSqi][(rookOcc
+								* rookmagic[endSqi].number) >> rookmagic[endSqi].shift];
+						captures[victim][len[victim]].attackSet[endSqi] |= bishopattset[endSqi][(bishopOcc
+								* bishopmagic[endSqi].number) >> bishopmagic[endSqi].shift];
+						break;
+					case KING:
+						captures[victim][len[victim]].attackSet[endSqi] = kingmoves[endSqi];
+						break;
+					}
+
+					CB(possible, endSqi + 1); // Clear that move from the possible ones
+					captures[victim][len[victim]].pieces[victim][playerOpp] &=
+							~captures[victim][len[victim]].pieces[attacker][player]; // Capture the piece
+
+					updslidpieces_capt(&captures[victim][len[victim]], startSqi, player, playerOpp);
+
+					// Is the king now in check?
+					if ((captures[victim][len[victim]].pieces[KING][player]
+							& getattsquares(playerOpp, captures[victim][len[victim]])) == 0) {
+						// Adjust castling rights of opponent if a rook was captured
+						// PERFORMANCE ISSUE: Shouldn't be checked every single time
+						if ((captures[victim][len[victim]].pieces[ROOKS][playerOpp] & ACORNER(playerOpp)) == 0)
+							captures[victim][len[victim]].states.queenCastle[playerOpp] = 0;
+						if ((captures[victim][len[victim]].pieces[ROOKS][playerOpp] & HCORNER(playerOpp)) == 0)
+							captures[victim][len[victim]].states.kingCastle[playerOpp] = 0;
+						captures[victim][len[victim]].states.enPassant = -1; // En passant is not possible
+						captures[victim][len[victim]].states.plies = 0; // A piece has been captured
+						captures[victim][len[victim]].states.toMove = playerOpp; // Now the opponent is to move
+						getmovenotation(position, &captures[victim][len[victim]], moveNota);
+											printf("%s\n", moveNota);
+						len[victim]++;
+					}
+				}
+			}
+			CB(pieces, startSqi + 1); // Clear that piece from the possible ones
+		}
+	}
+	return len[QUEENS] + len[ROOKS] + len[BISHOPS] + len[KNIGHTS] + len[PAWNS];
 }
 
 //int main(void) {

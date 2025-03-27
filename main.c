@@ -17,8 +17,7 @@
 int go;
 pv prinvar;
 
-int makemove(chessposition *position, char *move) {
-	// Makes a move given in long algebraic notation, does not check for legality
+int makemove(chessposition *position, char *move) { // Makes a move given in long algebraic notation, does not check for legality
 
 	int file, rank, startsqi, endsqi;
 	int player, playeropp;
@@ -144,105 +143,103 @@ int makemove(chessposition *position, char *move) {
 
 	start = UINT64_C(1) << startsqi;
 	end = UINT64_C(1) << endsqi;
-	player = position->states.tomove;
+	player = position->states.toMove;
 	playeropp = (player + 1) % 2; /* The one not to move */
 
 	/* First we update the states for the next move */
-	position->states.tomove = playeropp; /* Other player is to move afterwards */
+	position->states.toMove = playeropp; /* Other player is to move afterwards */
 	if (start == A1 || end == A1)
-		position->states.queencastle[WHITE] = 0; /* Something happened with the rooks */
+		position->states.queenCastle[WHITE] = 0; /* Something happened with the rooks */
 	if (start == H1 || end == H1)
-		position->states.kingcastle[WHITE] = 0; /* and we have to adjust castling rights */
+		position->states.kingCastle[WHITE] = 0; /* and we have to adjust castling rights */
 	if (start == A8 || end == A8)
-		position->states.queencastle[BLACK] = 0;
+		position->states.queenCastle[BLACK] = 0;
 	if (start == H8 || end == H8)
-		position->states.kingcastle[BLACK] = 0;
-	if (start == E1)
-		position->states.kingcastle[WHITE] = 0; /* King must have moved, castling no longer possible */
-	if (start == E1)
-		position->states.queencastle[WHITE] = 0;
-	if (start == E8)
-		position->states.kingcastle[BLACK] = 0;
-	if (start == E8)
-		position->states.queencastle[BLACK] = 0;
-
+		position->states.kingCastle[BLACK] = 0;
+	if (start == E1) {
+		position->states.kingCastle[WHITE] = 0; /* King must have moved, castling no longer possible */
+		position->states.queenCastle[WHITE] = 0;
+	}
+	if (start == E8) {
+		position->states.kingCastle[BLACK] = 0;
+		position->states.queenCastle[BLACK] = 0;
+	}
 	/* If pawn jumped, en passant is possible */
-	if ((start & position->pawns[player]) != 0 && abs(endsqi - startsqi) == 16) /* Has a pawn moved AND did it jump? */
-		position->states.enpassant = startsqi % 8;
+	if ((start & position->pieces[PAWNS][player]) != 0 && abs(endsqi - startsqi) == 16) /* Has a pawn moved AND did it jump? */
+		position->states.enPassant = startsqi % 8;
 	else
-		position->states.enpassant = -1;
+		position->states.enPassant = -1;
 
-	if ((start & position->pawns[player]) != 0
-			|| (end & getpieces(playeropp, position)) != 0) /* Has a pawn moved OR was a piece captured? */
+	if ((start & position->pieces[PAWNS][player]) != 0 || (end & getpieces(playeropp, position)) != 0) /* Has a pawn moved OR was a piece captured? */
 		position->states.plies = 0;
 	else
 		position->states.plies++;
 
-	if ((position->king[player] & start) != 0) { /* King has moved */
-		CB(position->king[player], startsqi + 1); /* Remove king from start square */
-		SB(position->king[player], endsqi + 1); /* Put king on end square */
+	if ((position->pieces[KING][player] & start) != 0) { /* King has moved */
+		CB(position->pieces[KING][player], startsqi + 1); /* Remove king from start square */
+		SB(position->pieces[KING][player], endsqi + 1); /* Put king on end square */
 		if (endsqi - startsqi == -2) { /* Did king castle queen side? */
-			CB(position->rooks[player], endsqi - 1); /* Remove rook from second square to the left of end square */
-			SB(position->rooks[player], endsqi + 2); /* Put it one square to the right */
+			CB(position->pieces[ROOKS][player], endsqi - 1); /* Remove rook from second square to the left of end square */
+			SB(position->pieces[ROOKS][player], endsqi + 2); /* Put it one square to the right */
 		}
 		if (endsqi - startsqi == 2) { /* Did king castle king side? */
-			CB(position->rooks[player], endsqi + 2); /* Remove rook from first square to the right of end square */
-			SB(position->rooks[player], endsqi); /* Put it one square to the left */
+			CB(position->pieces[ROOKS][player], endsqi + 2); /* Remove rook from first square to the right of end square */
+			SB(position->pieces[ROOKS][player], endsqi); /* Put it one square to the left */
 		}
 	}
 
-	else if ((position->queens[player] & start) != 0) { /* A queen has moved */
-		CB(position->queens[player], startsqi + 1); /* Remove queen from start square */
-		SB(position->queens[player], endsqi + 1); /* Put queen on end square */
+	else if ((position->pieces[QUEENS][player] & start) != 0) { /* A queen has moved */
+		CB(position->pieces[QUEENS][player], startsqi + 1); /* Remove queen from start square */
+		SB(position->pieces[QUEENS][player], endsqi + 1); /* Put queen on end square */
 	}
 
-	else if ((position->rooks[player] & start) != 0) { /* A Rook has moved */
-		CB(position->rooks[player], startsqi + 1); /* Remove rook from start square */
-		SB(position->rooks[player], endsqi + 1); /* Put rook on end square */
+	else if ((position->pieces[ROOKS][player] & start) != 0) { /* A Rook has moved */
+		CB(position->pieces[ROOKS][player], startsqi + 1); /* Remove rook from start square */
+		SB(position->pieces[ROOKS][player], endsqi + 1); /* Put rook on end square */
 	}
 
-	else if ((position->bishops[player] & start) != 0) { /* A bishop has moved */
-		CB(position->bishops[player], startsqi + 1); /* Remove bishop from start square */
-		SB(position->bishops[player], endsqi + 1); /* Put bishop on end square */
+	else if ((position->pieces[BISHOPS][player] & start) != 0) { /* A bishop has moved */
+		CB(position->pieces[BISHOPS][player], startsqi + 1); /* Remove bishop from start square */
+		SB(position->pieces[BISHOPS][player], endsqi + 1); /* Put bishop on end square */
 	}
 
-	else if ((position->knights[player] & start) != 0) { /* A knight has moved */
-		CB(position->knights[player], startsqi + 1); /* Remove knight from start square */
-		SB(position->knights[player], endsqi + 1); /* Put knight on end square */
+	else if ((position->pieces[KNIGHTS][player] & start) != 0) { /* A knight has moved */
+		CB(position->pieces[KNIGHTS][player], startsqi + 1); /* Remove knight from start square */
+		SB(position->pieces[KNIGHTS][player], endsqi + 1); /* Put knight on end square */
 	}
 
-	else if ((position->pawns[player] & start) != 0) { /* A pawn has moved */
-		CB(position->pawns[player], startsqi + 1); /* Remove pawn from start square */
+	else if ((position->pieces[PAWNS][player] & start) != 0) { /* A pawn has moved */
+		CB(position->pieces[PAWNS][player], startsqi + 1); /* Remove pawn from start square */
 		if ((end & CHESSRANK(player, 7)) != 0) { /* Did the pawn promote? */
 			switch (move[4]) {
 			case 'q':
-				SB(position->queens[player], endsqi + 1); /* Put queen on end square */
+				SB(position->pieces[QUEENS][player], endsqi + 1); /* Put queen on end square */
 				break;
 			case 'r':
-				SB(position->rooks[player], endsqi + 1); /* Put rook on end square */
+				SB(position->pieces[ROOKS][player], endsqi + 1); /* Put rook on end square */
 				break;
 			case 'b':
-				SB(position->bishops[player], endsqi + 1); /* Put bishop on end square */
+				SB(position->pieces[BISHOPS][player], endsqi + 1); /* Put bishop on end square */
 				break;
 			case 'n':
-				SB(position->knights[player], endsqi + 1); /* Put knight on end square */
+				SB(position->pieces[KNIGHTS][player], endsqi + 1); /* Put knight on end square */
 				break;
 			default:
 				return EXIT_FAILURE; /* Pawn promotion error */
 			}
-		} else
-			SB(position->pawns[player], endsqi + 1); /* Put pawn on end square */
+		}
+		else
+			SB(position->pieces[PAWNS][player], endsqi + 1); /* Put pawn on end square */
 		/* If pawn left its file, it captured a piece. If also there was no piece of opponent, it must have been en passant capture */
 		if (move[0] != move[2] && (getpieces(playeropp, position) & end) == 0) {
-			position->pawns[playeropp] &= ~(CHESSRANK(playeropp, 3)
-					& CHESSFILE(endsqi % 8)); /* Remove pawn from fourth rank (seen from playeropp) */
+			position->pieces[PAWNS][playeropp] &= ~(CHESSRANK(playeropp, 3) & CHESSFILE(endsqi % 8)); /* Remove pawn from fourth rank (seen from playeropp) */
 		}
 	}
-	position->queens[playeropp] &= ~end; /* Capture a piece if there was one */
-	position->rooks[playeropp] &= ~end;
-	position->bishops[playeropp] &= ~end;
-	position->knights[playeropp] &= ~end;
-	position->pawns[playeropp] &= ~end;
+	position->pieces[QUEENS][playeropp] &= ~end; /* Capture a piece if there was one */
+	position->pieces[ROOKS][playeropp] &= ~end;
+	position->pieces[BISHOPS][playeropp] &= ~end;
+	position->pieces[KNIGHTS][playeropp] &= ~end;
+	position->pieces[PAWNS][playeropp] &= ~end;
 	initattsets(position);
 	return EXIT_SUCCESS;
 }
@@ -346,7 +343,7 @@ int main(int argc, char *argv[]) {
 				go = 1;
 				i = 1;
 				timeInfo.moveTime = -1;
-				timeInfo.toMove = position.states.tomove;
+				timeInfo.toMove = position.states.toMove;
 				while (command[i] != NULL) {
 					if (strcmp(command[i], "wtime") == 0)
 						timeInfo.timeLeft[0] = strtol(
