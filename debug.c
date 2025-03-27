@@ -14,21 +14,21 @@ int cmppos(chessposition pos1, chessposition pos2) {	// Returns 0 if positions a
 														// positive number i if attackSet[i] differs
 	for (player = WHITE; player <= BLACK; player++) {
 	{
-		for (piece = QUEENS; piece <= KING; piece++)
+		for (piece = PAWNS; piece <= KING; piece++)
 			if (pos1.pieces[piece][player] != pos2.pieces[piece][player])
-				return -10 * piece - player;
+				return -10 * (piece + 1) - player;
 		}
 		if (pos1.states.kingCastle[player] != pos2.states.kingCastle[player])
-			return -60 - player;
+			return -70 - player;
 		if (pos1.states.queenCastle[player] != pos2.states.queenCastle[player])
-			return -62 - player;
+			return -72 - player;
 	}
 	if (pos1.states.enPassant != pos2.states.enPassant)
-		return -64;
+		return -74;
 	if (pos1.states.plies != pos2.states.plies)
-		return -65;
+		return -75;
 	if (pos1.states.toMove != pos2.states.toMove)
-		return -66;
+		return -76;
 
 	for (i = 0; i <= 63; i++)
 		if (pos1.attackSet[i] != pos2.attackSet[i])
